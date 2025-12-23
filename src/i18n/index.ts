@@ -4,7 +4,7 @@ import vi from './vi.json'
 import en from './en.json'
 import zh from './zh.json'
 import fil from './fil.json'
-
+import ko from './ko.json'
 export const i18n = createI18n({
   legacy: false,
   locale: 'vi',
@@ -13,6 +13,7 @@ export const i18n = createI18n({
     vi,
     en,
     zh,
-    fil
+    fil,
+    ko
   }
 })

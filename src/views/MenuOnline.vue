@@ -213,15 +213,23 @@
 <div
   v-for="m in pagedMenu"
   :key="m.Ma_hang"
-  class="card"
-  @click="openDetail(m)"
+  class="card-border"
+  :class="{ out: m.Trang_thai === 'Hết hàng' }"
 >
+  <div
+    class="card"
+    @click="openDetail(m)"
+  >
 
 
- <img
-  :src="m.Main_img"
-  @click="openDetail(m)"
-/>
+
+<div class="card-img-wrap">
+  <img
+    :src="m.Main_img"
+    alt=""
+  />
+</div>
+
 
 
   <div class="info">
@@ -233,7 +241,8 @@
     out: m.Trang_thai === 'Hết hàng'
   }"
 >
-  {{ m.Trang_thai }}
+ {{ $t(getStatusKey(m.Trang_thai)) }}
+
 </div>
 
     <!-- TÊN -->
@@ -302,7 +311,7 @@
 
 
 </div>
-
+</div>
 <!-- EMPTY STATE -->
 <div
   v-else
@@ -358,14 +367,118 @@
 
       </div>
 <!-- FOOTER -->
-      <footer class="footer">
-        <div v-for="f in footerList" :key="f.ID">
-          {{ f.Noi_dung }}
-        </div>
-        Design by Maximus
-      </footer>
+    
       
     </main>
+<transition name="detail-slide">
+  <aside
+    v-if="showDetailSidebar && isMobile"
+    class="detail-sidebar"
+  >
+    <!-- HEADER -->
+   <div class="detail-header">
+  <button class="detail-back" @click="closeDetailSidebar">
+    <i class="ri-arrow-left-line"></i>
+  </button>
+
+  <div class="detail-title">
+    {{ selectedItem?.Ten_hang }}
+  </div>
+</div>
+   <!-- ✅ ẢNH SẢN PHẨM (BỊ THIẾU) -->
+    <div class="detail-image-wrap">
+      <img
+        :src="selectedItem?.Main_img"
+        class="detail-img"
+        alt=""
+      />
+    </div>
+
+    <!-- BODY (COPY 100% TỪ MODAL) -->
+    <div class="detail-body modal-right">
+
+  <!-- TAG TRẠNG THÁI -->
+  <div
+    class="status-tag"
+    :class="{
+      available: selectedItem.Trang_thai === 'Còn hàng',
+      out: selectedItem.Trang_thai === 'Hết hàng'
+    }"
+  >
+    {{ selectedItem.Trang_thai }}
+  </div>
+
+  <!-- BADGE DANH MỤC -->
+  <div v-if="selectedItem.Danh_muc" class="meta-tag">
+    {{ $t('menu.category') }}: {{ selectedItem.Danh_muc }}
+  </div>
+
+  <!-- BADGE SIZE -->
+  <div v-if="selectedItem.Size" class="meta-tag">
+    Size: {{ selectedItem.Size }}
+  </div>
+
+  <!-- TÊN -->
+  <h3 class="modal-title">
+    {{ selectedItem.Ten_hang }}
+  </h3>
+
+  <!-- MÔ TẢ -->
+  <p class="modal-desc">
+    {{ selectedItem.Mo_ta || selectedItem.Ten_hang }}
+  </p>
+
+  <!-- GIÁ -->
+  <div class="modal-price">
+    {{ formatPrice(selectedItem.Gia_ban, selectedItem.Don_vi_tien_te) }}
+    <span v-if="selectedItem.Dvt" class="modal-unit">
+      / {{ selectedItem.Dvt }}
+    </span>
+  </div>
+
+  <!-- QTY (Y CHANG MODAL) -->
+  <div class="qty-row modal-qty">
+    <button @click="decTemp(selectedItem)">−</button>
+    <input
+      type="number"
+      min="1"
+      v-model.number="tempQty[selectedItem.Ma_hang]"
+    />
+    <button @click="incTemp(selectedItem)">+</button>
+  </div>
+<!-- ===== GHI CHÚ MÓN (MOBILE) ===== -->
+<div class="form-field">
+  <label>{{ $t('menu.note') }}</label>
+  <textarea
+    rows="2"
+    v-model="itemNotes[selectedItem.Ma_hang]"
+    :placeholder="$t('menu.notePlaceholder') || 'VD: ít cay, không hành, thêm sốt...'"
+  ></textarea>
+</div>
+
+  <!-- ADD -->
+<button
+  class="add-btn"
+  :class="{
+    added: addedMap[selectedItem.Ma_hang],
+    closing: closingDetailSidebar
+  }"
+  :disabled="selectedItem.Trang_thai === 'Hết hàng'"
+  @click="addFromDetailSidebar"
+>
+
+    <template v-if="addedMap[selectedItem.Ma_hang]">
+      <i class="ri-checkbox-circle-fill"></i>
+    </template>
+    <template v-else>
+      {{ $t('menu.add') }}
+    </template>
+  </button>
+
+</div>
+
+  </aside>
+</transition>
 
     <!-- ========== SIDEBAR RIGHT – CART (7) ========== -->
     <aside class="sidebar-right" :class="{ collapsed: !showCart }">
@@ -534,7 +647,7 @@
   </button>
   <!-- ===== MODAL CHI TIẾT SẢN PHẨM ===== -->
 <!-- ===== MODAL CHI TIẾT SẢN PHẨM ===== -->
-<div v-if="showDetail" class="modal-overlay" @click="closeDetail">
+<div v-if="showDetail && !isMobile" class="modal-overlay" @click="closeDetail" >
   <div
   class="modal-card modal-wide"
   :class="{ closing: closingModal }"
@@ -857,7 +970,9 @@ import { useRoute,useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 const route = useRoute()
 const router = useRouter()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
+
+
 const languages = [
   {
     code: 'vi',
@@ -879,6 +994,13 @@ const languages = [
     label: 'Filipino',
     flagImg: 'https://flagcdn.com/w40/ph.png'
   }
+,
+  {
+    code: 'ko',
+    label: '한국어',
+    flagImg: 'https://flagcdn.com/w40/kr.png'
+  }
+
 ]
 
 const showLangModal = ref(false)
@@ -923,6 +1045,7 @@ const showCategoryModal = ref(false)
 const showContactModal = ref(false)
 const activeMobilePanel = ref(null)
 const isMobile = ref(false)
+const closingDetailSidebar = ref(false)
 
 function checkMobile() {
   isMobile.value = window.innerWidth <= 768
@@ -1223,30 +1346,26 @@ const exportText = computed(() => {
       ? ` (${itemNotes.value[i.Ma_hang]})`
       : ''
 
-    return `${i.qty}.${i.Ten_hang} ${formatPrice(
-  i.Gia_ban,
-  i.Don_vi_tien_te
-)} : ${formatPrice(i.thanhTien, i.Don_vi_tien_te)}${note}`
-
+    return `${i.qty}. ${i.Ten_hang} ${formatPrice(
+      i.Gia_ban,
+      i.Don_vi_tien_te
+    )} : ${formatPrice(i.thanhTien, i.Don_vi_tien_te)}${note}`
   })
 
   return `
 ${lines.join('\n')}
 
-Tổng cộng: ${formatPrice(
+${t('export.total')}: ${formatPrice(
   totalAmount.value,
   cartItems.value[0]?.Don_vi_tien_te
 )}
 
-
-Địa chỉ: ${diaChi.value}
-SĐT: ${sdt.value}
-Thời gian giao: ${thoiGian.value}
-Ghi chú thêm: ${ghiChu.value}
+${t('export.address')}: ${diaChi.value}
+${t('export.phone')}: ${sdt.value}
+${t('export.time')}: ${thoiGian.value}
+${t('export.note')}: ${ghiChu.value}
 `.trim()
 })
-
-
 
 const thongBaoList = computed(() =>
   thongBao.value.filter((t) => t.Ma_nha_cung_cap === maNCC)
@@ -1333,6 +1452,13 @@ function stopBannerAuto() {
     bannerTimer = null
   }
 }
+function getStatusKey(raw) {
+  if (!raw) return ''
+  if (raw === 'Còn hàng') return 'status.in_stock'
+  if (raw === 'Hết hàng') return 'status.out_stock'
+  return raw
+}
+
 function selectAddress(place) {
   diaChi.value = place.display_name
   addressKeyword.value = place.display_name
@@ -1418,16 +1544,32 @@ function addToCart(m) {
 
 const showDetail = ref(false)
 const selectedItem = ref(null)
+// sidebar mới (mobile)
+const showDetailSidebar = ref(false)
 
 function openDetail(m) {
   selectedItem.value = m
-  showDetail.value = true
+
+  if (isMobile.value) {
+    // 📱 MOBILE → mở sidebar
+    showDetailSidebar.value = true
+  } else {
+    // 🖥 DESKTOP → mở modal như cũ
+    showDetail.value = true
+  }
 }
+
 
 function closeDetail() {
   showDetail.value = false
   selectedItem.value = null
 }
+
+function closeDetailSidebar() {
+  showDetailSidebar.value = false
+  selectedItem.value = null
+}
+
 
 watch(
   () => cartItems.value.length,
@@ -1719,6 +1861,23 @@ watch(
   },
   { immediate: true } // 🔥 BẮT BUỘC
 )
+function addFromDetailSidebar() {
+  if (!selectedItem.value) return
+
+  // 1️⃣ add vào giỏ (dùng lại logic cũ)
+  addToCart(selectedItem.value)
+
+  // 2️⃣ kích hoạt animation đóng
+  closingDetailSidebar.value = true
+
+  // 3️⃣ đợi animation xong → đóng sidebar
+  setTimeout(() => {
+    showDetailSidebar.value = false
+    closingDetailSidebar.value = false
+    selectedItem.value = null
+  }, 260) // khớp với CSS
+}
+
 </script>
 
 <style scoped>
@@ -1904,7 +2063,7 @@ watch(
 /* ===== CARD ===== */
 .card {
   background: #ffffff;
-  border: 2px solid #16a34a; /* 🌱 viền xanh */
+  
   border-radius: 10px;
   overflow: hidden;
   display: flex;
@@ -2676,11 +2835,26 @@ h3, h4, h5, p, span, div {
 }
 
 /* IMAGE */
-.modal-img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
+/* ===== MODAL IMAGE – FIX KHÔNG CẮT ===== */
+.modal-left {
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgb(28, 160, 28);
 }
+
+.modal-left .modal-img {
+  width: 100%;
+  height: auto;          /* 🔥 KHÔNG ÉP CAO */
+  max-height: 340px;     /* 🔥 GIỚI HẠN HỢP LÝ */
+  min-height: unset;     /* 🔥 BỎ min-height */
+  object-fit: contain;   /* 🔥 KHÔNG CẮT ẢNH */
+  background: #f9fafb;
+}
+
 
 /* BODY */
 .modal-body {
@@ -2716,21 +2890,15 @@ h3, h4, h5, p, span, div {
 /* layout trái phải */
 .modal-content {
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
-  gap: 16px;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 14px;
 }
-
 /* LEFT */
 .modal-left {
   background: #f9fafb;
 }
 
-.modal-left .modal-img {
-  width: 100%;
-  height: 100%;
-  min-height: 280px;
-  object-fit: cover;
-}
+
 
 /* RIGHT */
 .modal-right {
@@ -3308,34 +3476,91 @@ font-size: 11px;
   animation-play-state: paused;
 }
 
+/* ===============================
+   LIQUID GLASS – NOTICE BAR
+   =============================== */
 .notice-bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 
-  padding: 10px 14px;
-  margin-bottom: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
 
+  /* 🌿 GLASS TRONG SUỐT */
   background: linear-gradient(
     135deg,
-    #fef9c3,
-    #fde68a
+    rgba(34, 197, 94, 0.18),
+    rgba(255, 255, 255, 0.06)
   );
 
-  border-radius: 14px;
-  border-left: 5px solid #f59e0b;
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
 
-  box-shadow: 
-    0 6px 14px rgba(0,0,0,0.12);
+  border-radius: 18px;
+
+  /* viền kính mỏng */
+  border: 1px solid rgba(255, 255, 255, 0.28);
+
+  /* chiều sâu */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.45),
+    0 10px 26px rgba(0,0,0,0.28);
 
   overflow: hidden;
 }
 
+
+.notice-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.75),
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.55)
+  );
+
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+
+  pointer-events: none;
+}
+
+.notice-bar::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -30%;
+  width: 60%;
+  height: 160%;
+
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255,255,255,0.35),
+    transparent 70%
+  );
+
+  transform: rotate(18deg);
+  pointer-events: none;
+}
+
+
 /* ICON */
 .notice-icon {
-  flex-shrink: 0;
-  font-size: 18px;
+  font-size: 20px;
+  color: #ecfdf5;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.45);
 }
+
 
 /* KHUNG CHẠY */
 .notice-marquee {
@@ -3345,20 +3570,31 @@ font-size: 11px;
 }
 
 /* TEXT CHẠY */
-.notice-text {
-  display: inline-block;
-  padding-left: 100%;
-  animation: notice-move 12s linear infinite;
 
+.notice-text {
   font-size: 14px;
   font-weight: 600;
-  color: #92400e;
+  color: #ecfdf5;
+
+  text-shadow:
+    0 1px 3px rgba(0,0,0,0.45);
+
+  animation: notice-move 12s linear infinite;
 }
 
 /* PAUSE KHI HOVER */
 .notice-bar:hover .notice-text {
   animation-play-state: paused;
 }
+.notice-bar:hover {
+  backdrop-filter: blur(22px) saturate(1.8);
+  -webkit-backdrop-filter: blur(22px) saturate(1.8);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    0 14px 32px rgba(0,0,0,0.35);
+}
+
 
 /* ANIMATION */
 @keyframes notice-move {
@@ -3678,7 +3914,49 @@ font-size: 11px;
 
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
+/* ===== CARD IMAGE – KHÔNG CẮT ===== */
+.card-img-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;        /* 🔥 giữ khung đều */
+  background: #f9fafb;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
+  overflow: hidden;
+  border-bottom: 1px solid #e5e7eb;
+}
+.card-img-wrap::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+
+  height: 3px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #22c55e,
+    #16a34a,
+    #22c55e,
+    transparent
+  );
+}
+.card-img-wrap img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;        /* 🔥 KHÔNG CẮT ẢNH */
+  padding: 8px;               /* 🔥 thở ảnh */
+}
+.card:hover .card-img-wrap img {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
 .scroll-top-fab:hover {
   transform: scale(1.08);
   background: #15803d;
@@ -4040,6 +4318,26 @@ font-size: 11px;
     margin-top: 2px;
   }
   /* giới hạn chiều cao modal */
+.detail-back {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+
+  background: rgb(255, 255, 255);
+  color: #13a100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.detail-back:active {
+  transform: scale(0.9);
+}
 
   .modal-card {
     max-height: 80vh;        /* 👈 modal không cao quá */
@@ -4280,7 +4578,11 @@ font-size: 11px;
 .back-btn:hover {
   background: #ecfdf5;
 }
-
+.detail-title{
+  font-weight: bold;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
 /* active */
 .back-btn:active {
   transform: scale(0.97);
@@ -4314,6 +4616,31 @@ font-size: 11px;
 
   box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
+.detail-image-wrap {
+  position: relative;
+  padding-bottom: 12px;
+}
+
+.detail-image-wrap::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 0;
+
+  height: 3px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #22c55e,
+    #16a34a,
+    #22c55e,
+    transparent
+  );
+}
+
 /* ================= MOBILE BOTTOM BAR – FINAL VIP ================= */
 
 .mobile-bottom-bar {
@@ -4389,8 +4716,31 @@ font-size: 11px;
   font-size: 22px;
   color: #16a34a;
   transition: color 0.25s ease;
+  animation: icon-wiggle 3.5s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes icon-wiggle {
+  0%, 90%, 100% {
+    transform: rotate(0deg);
+  }
+  92% {
+    transform: rotate(-4deg);
+  }
+  96% {
+    transform: rotate(4deg);
+  }
+}
+.mobile-bottom-bar button.active i {
+  animation: icon-wiggle-active 1.2s ease-in-out infinite;
 }
 
+@keyframes icon-wiggle-active {
+  0%   { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(-8deg) scale(1.05); }
+  50%  { transform: rotate(8deg) scale(1.05); }
+  75%  { transform: rotate(-6deg) scale(1.03); }
+  100% { transform: rotate(0deg) scale(1); }
+}
 /* LABEL */
 .mobile-bottom-bar .btn-label {
   font-size: 11px;
@@ -4456,30 +4806,124 @@ font-size: 11px;
   100% { transform: scale(1); }
 }
   /* ===== MODAL CHI TIẾT MOBILE – NHỎ LẠI ===== */
-  .modal-card.modal-wide {
-    width: 92vw !important;     /* 👈 hẹp hơn */
-    max-width: 380px;
-    max-height: 75vh;           /* 👈 thấp lại */
-    overflow: hidden;
+.modal-card.modal-wide {
+  width: 620px;
+  max-width: 92%;
+  border-radius: 16px;
+}
+
+
+.modal-left {
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.modal-left .modal-img {
+  width: 100%;
+  height: auto;
+  max-height: 340px;
+  min-height: unset;
+  object-fit: contain;
+}
+ .detail-sidebar {
+    position: fixed;
+    inset: 0;
+    background: #ffffff;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
   }
 
-  .modal-left {
+  .detail-header {
+    height: 56px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: #000;
+    gap: 12px;
+    padding: 0 14px;
   }
 
-  .modal-left .modal-img {
+  .detail-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+  }
+
+  .detail-img {
     width: 100%;
-    height: auto;          /* 🔥 KHÔNG ÉP CAO */
-    max-height: 30vh;      /* 🔥 ẢNH NGẮN LẠI */
-    min-height: unset;     /* 🔥 BỎ min-height desktop */
-
-    object-fit: contain;   /* 🔥 KHÔNG CẮT ẢNH */
-    background: #000;
+    max-height: 320px;
+    object-fit: contain;
   }
-  
+   .detail-slide-enter-from {
+    transform: translateX(-100%);
+  }
+  .detail-slide-enter-to {
+    transform: translateX(0);
+  }
+  .detail-slide-leave-from {
+    transform: translateX(0);
+  }
+  .detail-slide-leave-to {
+    transform: translateX(-100%);
+  }
+
+  .detail-slide-enter-active,
+  .detail-slide-leave-active {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+   .filter-bar {
+    flex-wrap: nowrap !important;     /* 🔥 KHÔNG CHO XUỐNG DÒNG */
+    justify-content: space-between;   /* hoặc center */
+    gap: 8px;
+    overflow-x: auto;                 /* 🔥 phòng màn siêu nhỏ */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ẩn scrollbar ngang cho đẹp */
+  .filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .filter-bar {
+    scrollbar-width: none;
+  }
+
+  /* Nút filter co lại chút */
+  .filter-btn {
+    white-space: nowrap;              /* 🔥 KHÔNG XUỐNG DÒNG CHỮ */
+    padding: 6px 10px;
+    font-size: 12px;
+    flex-shrink: 0;                   /* 🔥 không bị ép */
+  }
+
+  /* Nút cờ */
+  .filter-btn.lang-filter {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  /* ===== ĐÓNG MƯỢT DETAIL SIDEBAR ===== */
+.detail-sidebar {
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.25s ease;
+}
+
+.detail-sidebar .add-btn.closing {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+/* khi đóng */
+.detail-slide-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
 }
 /* =========================
    FIX MODAL DANH MỤC MOBILE
@@ -4765,6 +5209,50 @@ font-size: 11px;
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.card-border {
+  --angle: 0deg;
+
+  position: relative;
+  padding: 2.5px;            /* viền dày hơn chút */
+  border-radius: 16px;
+filter: saturate(1.15);
+  background: conic-gradient(
+    from var(--angle),
+    transparent 0deg,
+    #22c55e 70deg,
+    #fef08a 140deg,
+    #22c55e 210deg,
+    #16a34a 280deg,
+    transparent 360deg
+  );
+
+  animation: border-spin 2s linear infinite; /* 🚀 nhanh hơn */
+  
+  /* glow mạnh hơn */
+  box-shadow:
+    0 0 10px rgba(34,197,94,0.55),
+    0 0 22px rgba(254,240,138,0.45);
+}
+
+/* card bên trong */
+.card-border > .card {
+  background: #ffffff;
+  border-radius: 14px;
+  height: 100%;
+}
+
+/* chỉ xoay gradient */
+@keyframes border-spin {
+  to {
+    --angle: 360deg;
+  }
 }
 
 </style>

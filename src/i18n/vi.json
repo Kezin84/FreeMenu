@@ -36,12 +36,24 @@
     "finish": "HOÀN THÀNH",
     "back": "QUAY LẠI"
   },
-  "export": {
-    "title": "NỘI DUNG ĐƠN HÀNG",
-    "copy": "Copy đơn hàng",
-    "copied": "Đã copy",
-    "send": "Gửi đơn qua"
-  },
+ "export": {
+  "title": "NỘI DUNG ĐƠN HÀNG",
+  "copy": "Copy đơn hàng",
+  "copied": "Đã copy",
+  "send": "Gửi đơn qua",
+
+  "total": "Tổng cộng",
+  "address": "Địa chỉ",
+  "phone": "SĐT",
+  "time": "Thời gian giao",
+  "note": "Ghi chú thêm"
+},
+"status": {
+  "in_stock": "Còn hàng",
+  "out_stock": "Hết hàng"
+}
+
+,
   "mobile": {
     "category": "Danh mục",
     "contact": "Liên hệ",

@@ -36,12 +36,24 @@
     "finish": "FINISH",
     "back": "BACK"
   },
-  "export": {
-    "title": "ORDER CONTENT",
-    "copy": "Copy order",
-    "copied": "Copied",
-    "send": "Send order via"
-  },
+"export": {
+  "title": "ORDER CONTENT",
+  "copy": "Copy order",
+  "copied": "Copied",
+  "send": "Send order via",
+
+  "total": "Total",
+  "address": "Address",
+  "phone": "Phone",
+  "time": "Delivery time",
+  "note": "Additional note"
+},
+"status": {
+  "in_stock": "In stock",
+  "out_stock": "Out of stock"
+}
+
+,
   "mobile": {
     "category": "Category",
     "contact": "Contact",

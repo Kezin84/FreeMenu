@@ -1,0 +1,68 @@
+{
+  "menu": {
+    "category": "카테고리",
+    "detail": "상세 보기",
+    "add": "추가",
+    "note": "메모 (가게용)"
+  },
+  "contact": {
+    "sendOrder": "주문 문의",
+    "supportInfo": "고객 지원 정보"
+  },
+  "search": {
+    "placeholder": "메뉴 검색 ..."
+  },
+  "filter": {
+    "all": "전체",
+    "asc": "가격 오름차순",
+    "desc": "가격 내림차순",
+    "changeLang": "언어 변경"
+  },
+  "empty": {
+    "menu": "검색어에 맞는 메뉴가 없습니다"
+  },
+  "cart": {
+    "title": "주문서",
+    "quantity": "수량",
+    "total": "총합",
+    "phone": "전화번호 (없으면 텔레그램)",
+    "phonePlaceholder": "전화번호 / 텔레그램 입력",
+    "address": "배송 주소",
+    "addressPlaceholder": "배송 주소 입력",
+    "time": "수령 시간",
+    "timePlaceholder": "예: 18:30",
+    "note": "가게에 남길 메모",
+    "notePlaceholder": "메모 입력 (덜 맵게, 7시 전에 배달 등)",
+    "finish": "완료",
+    "back": "뒤로"
+  },
+  "export": {
+    "title": "주문 내용",
+    "copy": "주문 복사",
+    "copied": "복사됨",
+    "send": "주문 보내기",
+    "total": "총합",
+    "address": "주소",
+    "phone": "전화번호",
+    "time": "배송 시간",
+    "note": "추가 메모"
+  },
+  "status": {
+    "in_stock": "재고 있음",
+    "out_stock": "품절"
+  },
+  "mobile": {
+    "category": "카테고리",
+    "contact": "문의",
+    "cart": "장바구니",
+    "send": "주문 보내기"
+  },
+  "modal": {
+    "chooseLang": "언어 선택",
+    "loading": "메뉴 불러오는 중…",
+    "chooseCategory": "카테고리 선택"
+  },
+  "common": {
+    "scrollTop": "맨 위로"
+  }
+}

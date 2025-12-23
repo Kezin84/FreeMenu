@@ -40,8 +40,18 @@
     "title": "NILALAMAN NG ORDER",
     "copy": "Kopyahin ang order",
     "copied": "Nakopya na",
-    "send": "Ipadala ang order sa"
+    "send": "Ipadala ang order sa",
+     "total": "Kabuuan",
+  "address": "Address",
+  "phone": "Telepono",
+  "time": "Oras ng delivery",
+  "note": "Karagdagang tala"
   },
+  "status": {
+  "in_stock": "May stock",
+  "out_stock": "Walang stock"
+}
+,
   "mobile": {
     "category": "Kategorya",
     "contact": "Makipag-ugnayan",
