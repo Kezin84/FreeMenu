@@ -71,7 +71,7 @@ const loading = ref(false)
 const error = ref('')
 
 const SCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbzZLlPqjwNuAhRbkZ_UqeJCHQw4TxRQY4d7r-mejYhupfrFanyJcb9EFwvb30X5gqkQ/exec'
+  'https://script.google.com/macros/s/AKfycbye90xvM0df2PvH-sbYpdrJthTF6_psz3m6JwbT700ZJBKTkKFf7JJItKUUYr0FL9bb/exec'
 
 const handleLogin = async () => {
   loading.value = true

@@ -1110,7 +1110,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, onUnmounted, watch } from 'vue'
 
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZLlPqjwNuAhRbkZ_UqeJCHQw4TxRQY4d7r-mejYhupfrFanyJcb9EFwvb30X5gqkQ/exec'
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbye90xvM0df2PvH-sbYpdrJthTF6_psz3m6JwbT700ZJBKTkKFf7JJItKUUYr0FL9bb/exec'
 const IMGBB_API_KEY = 'b202a4bdc79bf1dc72f6f6ded6b74501'
 const IMGBB_UPLOAD_URL = 'https://api.imgbb.com/1/upload'
 const supplementaryImageKeys = ['img_1', 'img_2', 'img_3', 'img_4', 'img_5', 'img_6']
