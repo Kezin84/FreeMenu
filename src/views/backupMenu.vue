@@ -354,7 +354,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(m) ? 'red' : '' }">
     {{ formatPrice(finalPrice(m), m.Don_vi_tien_te) }}
     <span v-if="m.Dvt" class="unit">/ {{ m.Dvt }}</span>
   </span>
@@ -609,7 +609,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(selectedItem) ? 'red' : '' }">
     {{ formatPrice(finalPrice(selectedItem), selectedItem.Don_vi_tien_te) }}
     <span v-if="selectedItem.Dvt" class="modal-unit">
       / {{ selectedItem.Dvt }}
@@ -720,8 +720,8 @@
       <div class="cart-col info">
         <div class="cart-name">{{ i.Ten_hang }}</div>
 
-        <div class="cart-price">
-          {{ formatPrice(i.Gia_ban, i.Don_vi_tien_te) }}
+        <div class="cart-price" :style="{ color: isDiscount(i) ? 'red' : '' }">
+          {{ formatPrice(finalPrice(i), i.Don_vi_tien_te) }}
           <span v-if="i.Dvt">/ {{ i.Dvt }}</span>
         </div>
 
@@ -963,7 +963,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(selectedItem) ? 'red' : '' }">
     {{ formatPrice(finalPrice(selectedItem), selectedItem.Don_vi_tien_te) }}
     <span v-if="selectedItem.Dvt" class="modal-unit">
       / {{ selectedItem.Dvt }}
@@ -1363,7 +1363,7 @@
       THÔNG TIN CHUYỂN KHOẢN
     </h3>
 
-   <div v-if="ckList.length" class="ck-list">
+   <div v-if="ckList.length" class="ck-list" :style="ckListStyle">
   <div v-for="c in ckList" :key="c.ID" class="ck-card">
 
     <!-- (1) TIÊU ĐỀ (pill góc phải) -->
@@ -1445,8 +1445,8 @@
         <div class="cart-col info">
           <div class="cart-name">{{ i.Ten_hang }}</div>
 
-          <div class="cart-price">
-            {{ formatPrice(i.Gia_ban, i.Don_vi_tien_te) }}
+          <div class="cart-price" :style="{ color: isDiscount(i) ? 'red' : '' }">
+            {{ formatPrice(finalPrice(i), i.Don_vi_tien_te) }}
             <span v-if="i.Dvt">/ {{ i.Dvt }}</span>
           </div>
 
@@ -1699,6 +1699,16 @@ const ckList = computed(() =>
       String(maNCC || '').trim()
   )
 )
+
+const ckListStyle = computed(() => {
+  if (isMobile.value) return { gridTemplateColumns: '1fr' }
+  const count = ckList.value.length
+  // Tối đa 3 cột, chiều rộng tối thiểu 300px mỗi card
+  const cols = Math.min(count, 3)
+  return {
+    gridTemplateColumns: `repeat(${cols}, minmax(300px, 1fr))`
+  }
+})
 
 function checkMobile() {
   isMobile.value = window.innerWidth <= 768
@@ -3445,11 +3455,25 @@ border-radius: inherit; /* 👈 bo theo cha */
   margin: 10px 0;
 }
 
-.menu {
+/* DESKTOP */
+
+/* wrapper/grid container của menu */
+.menu{
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  width: 100%;
+
+  grid-template-columns: repeat(4, minmax(200px, 260px));
+  justify-content: center;
+  align-content: start;
 }
+@media (max-width: 1200px){
+  .menu{ grid-template-columns: repeat(3, minmax(200px, 260px)); }
+}
+@media (max-width: 900px){
+  .menu{ grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+}
+
 
 /* ===== CARD ===== */
 .card {
@@ -8263,14 +8287,12 @@ filter: saturate(1.15);
 }
 
 .ck-modal{
-  width: min(980px, 94vw);
+  width: fit-content;
+  max-width: 96vw;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: auto;
-
-  /* set chiều cao 1 card để tính đúng 2 hàng */
-  --ck-row-h: 300px;   /* chỉnh 280–320 tuỳ card của mày */
+  overflow: hidden; /* scroll nội bộ */
 }
 
 
@@ -8338,18 +8360,13 @@ filter: saturate(1.15);
   margin-top: 12px;
 
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ 3 cột */
   gap: 12px;
-
-  /* ✅ giới hạn để nhìn giống "2 hàng" rồi mới scroll */
-  max-height: 62vh;          /* tuỳ máy sẽ ra ~2 hàng */
 }
 
 /* Mobile: 1 cột cho dễ đọc */
 @media (max-width: 560px){
   .ck-list{
     grid-template-columns: 1fr;
-    max-height: 80vh;
   }
 }
 

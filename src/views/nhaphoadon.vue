@@ -780,7 +780,7 @@
                   </div>
                 </div>
 
-                <div v-if="hasItemDiscount(i)" class="order-card-discount">
+                <div class="order-card-discount" :class="{ 'item-card-discount-red': hasItemDiscount(i) }">
                   <span v-if="Number(i.chietKhau || 0) > 0">
                     CK {{ i.chietKhau || 0 }}%: -{{ formatWithCurrency(getItemChietKhauTien(i), i.donViTienTe) }}
                   </span>
@@ -8346,7 +8346,7 @@ textarea:focus {
 .price-sale {
   font-size: 14px;
   font-weight: 700;
-  color: #f87171;
+  color: #ef4444;
 }
 
 .price-old {
@@ -8942,8 +8942,8 @@ textarea:focus {
 .price-current {
   font-size: 24px; /* Same large size */
   font-weight: 900;
-  color: #f87171;
-  text-shadow: 0 2px 10px rgba(248, 113, 113, 0.3);
+  color: #ef4444;
+  text-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
 }
 
 .price-original-strike {

@@ -65,7 +65,7 @@
   class="shop-contact"
 >
   <h4 class="contact-title">
-    {{ $t('contact.sendOrder') }}
+    {{ $t('contact.sendOrder') }} <i class="ri-customer-service-2-fill"></i>
   </h4>
 
   <a
@@ -354,7 +354,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(m) ? 'red' : '' }">
     {{ formatPrice(finalPrice(m), m.Don_vi_tien_te) }}
     <span v-if="m.Dvt" class="unit">/ {{ m.Dvt }}</span>
   </span>
@@ -609,7 +609,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(selectedItem) ? 'red' : '' }">
     {{ formatPrice(finalPrice(selectedItem), selectedItem.Don_vi_tien_te) }}
     <span v-if="selectedItem.Dvt" class="modal-unit">
       / {{ selectedItem.Dvt }}
@@ -720,8 +720,8 @@
       <div class="cart-col info">
         <div class="cart-name">{{ i.Ten_hang }}</div>
 
-        <div class="cart-price">
-          {{ formatPrice(i.Gia_ban, i.Don_vi_tien_te) }}
+        <div class="cart-price" :style="{ color: isDiscount(i) ? 'red' : '' }">
+          {{ formatPrice(finalPrice(i), i.Don_vi_tien_te) }}
           <span v-if="i.Dvt">/ {{ i.Dvt }}</span>
         </div>
 
@@ -963,7 +963,7 @@
   </span>
 
   <!-- GIÁ SAU GIẢM -->
-  <span class="price">
+  <span class="price" :style="{ color: isDiscount(selectedItem) ? 'red' : '' }">
     {{ formatPrice(finalPrice(selectedItem), selectedItem.Don_vi_tien_te) }}
     <span v-if="selectedItem.Dvt" class="modal-unit">
       / {{ selectedItem.Dvt }}
@@ -1194,7 +1194,7 @@
     <div class="btn-inner">
       <div class="btn-scale">
         <div class="cart-icon-wrap">
-          <i class="ri-shopping-cart-2-fill" style="color:green"></i>
+          <i class="ri-shopping-cart-2-fill" :style="{ color: activeMobilePanel === 'cart' ? '#ffffff' : '#16a34a' }"></i>
 
           <span
             v-if="cartItems.length"
@@ -1363,7 +1363,7 @@
       THÔNG TIN CHUYỂN KHOẢN
     </h3>
 
-   <div v-if="ckList.length" class="ck-list">
+   <div v-if="ckList.length" class="ck-list" :style="ckListStyle">
   <div v-for="c in ckList" :key="c.ID" class="ck-card">
 
     <!-- (1) TIÊU ĐỀ (pill góc phải) -->
@@ -1445,8 +1445,8 @@
         <div class="cart-col info">
           <div class="cart-name">{{ i.Ten_hang }}</div>
 
-          <div class="cart-price">
-            {{ formatPrice(i.Gia_ban, i.Don_vi_tien_te) }}
+          <div class="cart-price" :style="{ color: isDiscount(i) ? 'red' : '' }">
+            {{ formatPrice(finalPrice(i), i.Don_vi_tien_te) }}
             <span v-if="i.Dvt">/ {{ i.Dvt }}</span>
           </div>
 
@@ -1699,6 +1699,16 @@ const ckList = computed(() =>
       String(maNCC || '').trim()
   )
 )
+
+const ckListStyle = computed(() => {
+  if (isMobile.value) return { gridTemplateColumns: '1fr' }
+  const count = ckList.value.length
+  // Tối đa 3 cột, chiều rộng tối thiểu 300px mỗi card
+  const cols = Math.min(count, 3)
+  return {
+    gridTemplateColumns: `repeat(${cols}, minmax(300px, 1fr))`
+  }
+})
 
 function checkMobile() {
   isMobile.value = window.innerWidth <= 768
@@ -3184,25 +3194,22 @@ const hasSale = computed(() =>
   padding: 14px 10px 18px;
   margin: 8px 6px 18px;
 
-  /* 🌌 GLASS CARD – THEME XANH ĐẬM */
+  /* Linear gradient xanh teal + trắng */
   background: linear-gradient(
     135deg,
-    rgba(0, 4, 40, 0.85),   /* #000428 */
-    rgba(0, 78, 146, 0.65)  /* #004e92 */
+    #01041b 0%,
+    #013a6d 100%
   );
 
-  backdrop-filter: blur(14px) saturate(1.6);
-  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  border-radius: 16px;
 
-  border-radius: 15px;
+  /* Viền phát sáng cyan */
+  border: 2px solid #004166;
 
-  /* viền kính nhẹ */
-  border: 1px solid rgba(255, 255, 255, 0.35);
-
-  /* chiều sâu */
+  /* Glow effect */
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.35),
-    0 10px 28px rgba(0,0,0,0.35);
+    0 0 15px rgba(26, 154, 154, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 
@@ -3213,7 +3220,7 @@ const hasSale = computed(() =>
   height: 60px;
 
   border-radius: 25px;
-  border: 1px solid yellow;
+  border: 1px solid #39FF14;
 
 
 
@@ -3226,7 +3233,7 @@ const hasSale = computed(() =>
 .logo-name {
   max-width: 100%;
   text-align: center;
-  color: #e5ff00;                 /* vàng chữ */
+  color: #39FF14;                 /* xanh neon */
   
   font-size: 17px;
   font-weight: bold;
@@ -3277,6 +3284,90 @@ const hasSale = computed(() =>
   0% { transform: translate3d(-140%, -140%, 0); }
   55% { transform: translate3d(120%, 120%, 0); }
   100% { transform: translate3d(160%, 160%, 0); }
+}
+
+/* ===== SHOP CONTACT ===== */
+.shop-contact {
+  margin-top: auto;
+  padding: 8px 0;
+}
+
+.contact-title {
+  display: block;
+  width: 100%;
+  padding: 5px 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  text-align: left;
+  text-transform:uppercase ;
+  /* Background xanh navy giống logo */
+  background: linear-gradient(
+    135deg,
+    #001106 0%,
+    #015539 100%
+  );
+  
+  /* Chữ xanh neon */
+  color: #ffffff !important;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  
+  border: 1px solid rgba(29, 194, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  
+  /* Background xanh giống box logo */
+  background: linear-gradient(
+    135deg,
+    #0a1a30 0%,
+    #0a4d80 100%
+  );
+  
+  border: 1px solid rgba(57, 255, 20, 0.3);
+  transition: all 0.2s ease;
+}
+
+.contact-item:hover {
+  transform: translateX(4px);
+  border-color: rgba(57, 255, 20, 0.6);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.contact-icon-wrap {
+  flex-shrink: 0;
+}
+
+.contact-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-name {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.contact-desc {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-style: italic;
 }
 
 .categories .cat {
@@ -7855,33 +7946,24 @@ h3, h4, h5, p, span, div {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-@property --angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
+/* ===== CARD BORDER - STATIC ===== */
 .card-border {
-  --angle: 0deg;
-
   position: relative;
-  padding: 2.5px;            /* viền dày hơn chút */
+  padding: 2.5px;
   border-radius: 16px;
-filter: saturate(1.15);
-  background: conic-gradient(
-    from var(--angle),
-    transparent 0deg,
-    #22c55e 70deg,
-    #fef08a 140deg,
-    #22c55e 210deg,
-    #16a34a 280deg,
-    transparent 360deg
+
+  /* Static gradient border - không xoay */
+  background: linear-gradient(
+    135deg,
+    #22c55e 0%,
+    #16a34a 25%,
+    #22c55e 50%,
+    #86efac 75%,
+    #22c55e 100%
   );
 
-  animation: border-spin 1.6s linear infinite; /* 🚀 nhanh hơn */
-  
-  /* glow mạnh hơn */
-
+  /* Subtle glow */
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
 }
 
 /* card bên trong */
@@ -7889,13 +7971,6 @@ filter: saturate(1.15);
   background: #ffffff;
   border-radius: 14px;
   height: 100%;
-}
-
-/* chỉ xoay gradient */
-@keyframes border-spin {
-  to {
-    --angle: 360deg;
-  }
 }
 .page-dots{
   color:#fff;
@@ -7967,21 +8042,7 @@ filter: saturate(1.15);
   white-space: nowrap;
 }
 
-.dot-online {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  display: inline-block;
-  position: relative;
 
-  background: #22c55e;
-
-  box-shadow:
-    0 0 0 5px rgba(34,197,94,0.38),
-    0 0 14px rgba(34,197,94,0.72),
-    0 0 28px rgba(34,197,94,0.6);
-  filter: drop-shadow(0 0 6px rgba(34,197,94,0.35));
-}
 
 @keyframes pulse {
   0% {
@@ -8277,14 +8338,12 @@ filter: saturate(1.15);
 }
 
 .ck-modal{
-  width: min(980px, 94vw);
+  width: fit-content;
+  max-width: 96vw;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: auto;
-
-  /* set chiều cao 1 card để tính đúng 2 hàng */
-  --ck-row-h: 300px;   /* chỉnh 280–320 tuỳ card của mày */
+  overflow: hidden; /* scroll nội bộ */
 }
 
 
@@ -8352,18 +8411,13 @@ filter: saturate(1.15);
   margin-top: 12px;
 
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ 3 cột */
   gap: 12px;
-
-  /* ✅ giới hạn để nhìn giống "2 hàng" rồi mới scroll */
-  max-height: 62vh;          /* tuỳ máy sẽ ra ~2 hàng */
 }
 
 /* Mobile: 1 cột cho dễ đọc */
 @media (max-width: 560px){
   .ck-list{
     grid-template-columns: 1fr;
-    max-height: 80vh;
   }
 }
 
