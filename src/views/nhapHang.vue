@@ -2,7 +2,7 @@
   <div class="crm-layout">
     <div class="page">
       <div class="page-head">
-      <h1 style="color: rgb(134, 239, 172); text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);font-weight: bold;"><i class="ri-archive-fill"></i> NHẬP HÀNG VÀO WEB</h1>
+      <h1 style="color: rgb(134, 239, 172); text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);font-weight: bold;"><i class="app-ico ri-archive-fill"></i> NHẬP HÀNG VÀO WEB</h1>
       </div>
 
       <!-- ====== DESKTOP: FORM LEFT | LIST RIGHT ====== -->
@@ -10,7 +10,7 @@
         <!-- ================= FORM (LEFT) ================= -->
         <section class="box form-box">
           <div class="box-title">
-            <div class="title">Form nhập <i class="ri-arrow-up-box-fill"></i></div>
+            <div class="title">Form nhập <i class="app-ico ri-arrow-up-box-fill"></i></div>
           </div>
 
           <!-- ẨN nhưng vẫn nhận giá trị -->
@@ -30,12 +30,12 @@
           <div class="form-panels">
             <div class="panel">
               <div class="panel-header">
-                <i class="ri-layout-grid-line"></i>
+                <i class="app-ico ri-layout-grid-line"></i>
                 Hình ảnh & tên
               </div>
               <div class="panel-body panel-grid">
                 <div class="field span-6">
-                  <label>Main image</label>
+                  <label>ẢNH CHÍNH</label>
 
                   <div class="upload-wrap">
                     <input type="file" accept="image/*" @change="handleMainImageUpload" />
@@ -53,10 +53,137 @@
                   </div>
                 </div>
 
-                <div class="field span-6">
+                <div class="field span-6 relative" ref="suggestionRef">
                   <label>Tên hàng</label>
-                  <input v-model="form.Ten_hang" placeholder="VD: Áo thun cotton..." />
+                  <div class="input-icon-wrap">
+                    <input 
+                      v-model="form.Ten_hang" 
+                      placeholder="VD: Áo thun cotton..." 
+                      @focus="onFocus"
+                    />
+                    <!-- LOAD ICON -->
+                    <div class="input-status-icon">
+                      <i v-if="isLoadingProducts" class="ri-loader-4-line spin-icon"></i>
+                      <i v-else-if="!form.Ten_hang" class="ri-checkbox-circle-fill success-icon"></i>
+                    </div>
+
+                    <!-- NÚT XOÁ -->
+                     <button 
+                      v-if="form.Ten_hang" 
+                      type="button" 
+                      class="btn-clear-input"
+                      @click="clearSearch" 
+                      tabindex="-1"
+                    >
+                      Xóa
+                    </button>
+                  </div>
+
+                  <!-- SUGGESTION LIST -->
+                  <div v-if="showSuggestions && filteredSuggestions.length" class="suggestion-list">
+                    <div 
+                      v-for="p in filteredSuggestions" 
+                      :key="p.Ma_hang" 
+                      class="suggestion-item"
+                      @click="selectProduct(p)"
+                    >
+                      <img :src="p.Main_img" v-if="p.Main_img" class="suggest-thumb" />
+                      <div class="suggest-info">
+                        <div class="suggest-name">{{ p.Ten_hang }}</div>
+                       <div class="suggest-meta">
+                          {{ p.Ma_hang }} • {{ p.Size }} • {{ p.Dvt }} 
+                          <span v-if="p.So_luong_kho" style="color: #4ade80; font-weight: bold; margin-left: 5px;">
+                            (Kho: {{ p.So_luong_kho }})
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   <!-- ✅ ẨN phần “mã hàng tự gen” -->
+                </div>
+
+                <!-- MOVED SUB IMAGES HERE -->
+                <div class="field span-12">
+                   <label>Ảnh phụ (tối đa 6 ảnh)</label>
+                   <div class="sub-images-grid">
+                      <!-- IMG 1 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_1')" />
+                          <div v-if="uploadingSubImg.img_1" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_1" class="img-preview-mini">
+                            <img :src="form.img_1" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_1 = ''"><i class="app-ico ri-close-line"></i></button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 1</div>
+                        </div>
+                      </div>
+
+                      <!-- IMG 2 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_2')" />
+                          <div v-if="uploadingSubImg.img_2" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_2" class="img-preview-mini">
+                            <img :src="form.img_2" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_2 = ''">×</button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 2</div>
+                        </div>
+                      </div>
+
+                      <!-- IMG 3 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_3')" />
+                          <div v-if="uploadingSubImg.img_3" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_3" class="img-preview-mini">
+                            <img :src="form.img_3" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_3 = ''">×</button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 3</div>
+                        </div>
+                      </div>
+
+                      <!-- IMG 4 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_4')" />
+                          <div v-if="uploadingSubImg.img_4" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_4" class="img-preview-mini">
+                            <img :src="form.img_4" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_4 = ''">×</button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 4</div>
+                        </div>
+                      </div>
+
+                      <!-- IMG 5 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_5')" />
+                          <div v-if="uploadingSubImg.img_5" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_5" class="img-preview-mini">
+                            <img :src="form.img_5" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_5 = ''">×</button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 5</div>
+                        </div>
+                      </div>
+
+                      <!-- IMG 6 -->
+                      <div class="sub-img-item">
+                        <div class="upload-wrap-mini">
+                          <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_6')" />
+                          <div v-if="uploadingSubImg.img_6" class="hint-mini">Uploading...</div>
+                          <div v-if="form.img_6" class="img-preview-mini">
+                            <img :src="form.img_6" alt="" />
+                            <button class="btn-remove-mini" type="button" @click="form.img_6 = ''">×</button>
+                          </div>
+                          <div v-else class="placeholder-mini">Ảnh 6</div>
+                        </div>
+                      </div>
+                    </div>
                 </div>
 
                 <div class="field span-12">
@@ -68,7 +195,7 @@
 
             <div class="panel">
               <div class="panel-header">
-                <i class="ri-stack-line"></i>
+                <i class="app-ico ri-stack-line"></i>
                 Chi tiết sản phẩm
               </div>
               <div class="panel-body panel-grid">
@@ -107,131 +234,55 @@
                 </div>
               </div>
             </div>
+<div class="panel">
+  <div class="panel-header">
+    <i class="app-ico ri-price-tag-3-line"></i>
+    Giá bán & Số lượng
+  </div>
+  <div class="panel-body panel-grid">
+    <div class="field span-4">
+      <label>Giá gốc</label>
+      <div class="money-wrap">
+        <input
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          class="money-input"
+          :value="fmtMoneyInput(form.Gia_goc)"
+          @input="(e) => (form.Gia_goc = parseMoneyInput(e.target.value))"
+          placeholder="0"
+        />
+      </div>
+    </div>
+    <div class="field span-4">
+      <label>Giá bán</label>
+      <div class="money-wrap">
+        <input
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          class="money-input"
+          :value="fmtMoneyInput(form.Gia_ban)"
+          @input="(e) => (form.Gia_ban = parseMoneyInput(e.target.value))"
+          placeholder="0"
+        />
+      </div>
+    </div>
+    
+    <!-- ✅ THÊM Ô SỐ LƯỢNG -->
+    <div class="field span-4">
+      <label>Số lượng nhập kho</label>
+      <input
+        type="number"
+        v-model.number="form.So_luong"
+        placeholder="0"
+        min="0"
+      />
+    </div>
+  </div>
+</div>
 
-            <div class="panel">
-              <div class="panel-header">
-                <i class="ri-price-tag-3-line"></i>
-                Giá bán
-              </div>
-              <div class="panel-body panel-grid">
-                <div class="field span-6">
-                  <label>Giá gốc</label>
-                  <div class="money-wrap">
-                    <input
-                      type="text"
-                      inputmode="numeric"
-                      autocomplete="off"
-                      class="money-input"
-                      :value="fmtMoneyInput(form.Gia_goc)"
-                      @input="(e) => (form.Gia_goc = parseMoneyInput(e.target.value))"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-                <div class="field span-6">
-                  <label>Giá bán</label>
-                  <div class="money-wrap">
-                    <input
-                      type="text"
-                      inputmode="numeric"
-                      autocomplete="off"
-                      class="money-input"
-                      :value="fmtMoneyInput(form.Gia_ban)"
-                      @input="(e) => (form.Gia_ban = parseMoneyInput(e.target.value))"
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div class="panel">
-              <div class="panel-header">
-                <i class="ri-image-fill"></i>
-                Ảnh phụ (tối đa 6 ảnh)
-              </div>
-              <div class="panel-body panel-body--stacked">
-                <div class="sub-images-grid">
-                  <!-- IMG 1 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_1')" />
-                      <div v-if="uploadingSubImg.img_1" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_1" class="img-preview-mini">
-                        <img :src="form.img_1" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_1 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 1</div>
-                    </div>
-                  </div>
-
-                  <!-- IMG 2 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_2')" />
-                      <div v-if="uploadingSubImg.img_2" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_2" class="img-preview-mini">
-                        <img :src="form.img_2" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_2 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 2</div>
-                    </div>
-                  </div>
-
-                  <!-- IMG 3 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_3')" />
-                      <div v-if="uploadingSubImg.img_3" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_3" class="img-preview-mini">
-                        <img :src="form.img_3" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_3 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 3</div>
-                    </div>
-                  </div>
-
-                  <!-- IMG 4 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_4')" />
-                      <div v-if="uploadingSubImg.img_4" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_4" class="img-preview-mini">
-                        <img :src="form.img_4" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_4 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 4</div>
-                    </div>
-                  </div>
-
-                  <!-- IMG 5 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_5')" />
-                      <div v-if="uploadingSubImg.img_5" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_5" class="img-preview-mini">
-                        <img :src="form.img_5" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_5 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 5</div>
-                    </div>
-                  </div>
-
-                  <!-- IMG 6 -->
-                  <div class="sub-img-item">
-                    <div class="upload-wrap-mini">
-                      <input type="file" accept="image/*" @change="(e) => handleSubImageUpload(e, 'img_6')" />
-                      <div v-if="uploadingSubImg.img_6" class="hint-mini">Uploading...</div>
-                      <div v-if="form.img_6" class="img-preview-mini">
-                        <img :src="form.img_6" alt="" />
-                        <button class="btn-remove-mini" type="button" @click="form.img_6 = ''">×</button>
-                      </div>
-                      <div v-else class="placeholder-mini">Ảnh 6</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
           <!-- ACTIONS -->
           <div class="actions">
@@ -258,7 +309,7 @@
               :disabled="submitting"
             >
               <span v-if="submitting" class="spin"></span>
-              {{ submitting ? 'Đang gửi...' : 'Hoàn thành ✅ ' }}
+              {{ submitting ? 'Đang gửi...' : 'Hoàn thành' }} <i class="app-ico ri-checkbox-circle-line"></i>
             </button>
           </div>
 
@@ -266,12 +317,12 @@
           <div class="advanced">
             <div class="advanced-grid">
               <button class="btn warning" type="button" @click="showBulkModal = true">
-                Nhập hàng loạt <i class="ri-list-check"></i>
+                Nhập hàng loạt <i class="app-ico ri-list-check"></i>
               </button>
 
               <!-- Import Excel -->
               <button class="btn info" type="button" @click="excelInput?.click()" style="background-color: green;">
-                <i class="ri-file-excel-2-fill"></i>
+                <i class="app-ico ri-file-excel-2-fill"></i>
                 Nhập bằng Excel
               </button>
               <input
@@ -289,13 +340,13 @@
                 class="btn info outline"
                 style="text-decoration:underline;background-color: white;color:green;font-weight: bold;"
               >
-                <i class="ri-download-2-line"></i>
+                <i class="app-ico ri-download-2-line"></i>
                 Tải file mẫu excel
               </a>
 
               <!-- Bulk image -->
               <button class="btn primary" type="button" @click="triggerBulkImageUpload">
-                Upload ảnh hàng loạt <i class="ri-upload-2-fill"></i>
+                Upload ảnh hàng loạt <i class="app-ico ri-upload-2-fill"></i>
               </button>
               <input
                 ref="bulkImageInput"
@@ -339,25 +390,26 @@
 
           <div v-else class="table-wrap">
             <table class="table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Ảnh</th>
-                  <th>Ảnh phụ</th>
-                  <th>Mã hàng</th>
-                  <th>Tên hàng</th>
-                  <th>Mô tả</th>
-                  <th>Danh mục</th>
-                  <th>ĐVT</th>
-                  <th>Size</th>
-                  <th>Giá gốc</th>
-                  <th>Giá bán</th>
-                  <th>Tiền tệ</th>
-                  <th>Lang</th>
-                  <th>Trạng thái</th>
-                  <th></th>
-                </tr>
-              </thead>
+         <thead>
+  <tr>
+    <th>STT</th>
+    <th>Ảnh</th>
+    <th>Ảnh phụ</th>
+    <th>Mã hàng</th>
+    <th>Tên hàng</th>
+    <th>Mô tả</th>
+    <th>Danh mục</th>
+    <th>ĐVT</th>
+    <th>Size</th>
+    <th>Giá gốc</th>
+    <th>Giá bán</th>
+    <th>Số lượng</th> <!-- ✅ THÊM DÒNG NÀY -->
+    <th>Tiền tệ</th>
+    <th>Lang</th>
+    <th>Trạng thái</th>
+    <th></th>
+  </tr>
+</thead>
 
               <tbody>
                 <tr
@@ -395,7 +447,8 @@
                   <td>{{ h.Size }}</td>
                   <td class="money">{{ fmtMoney(h.Gia_goc) }}</td>
                   <td class="money strong">{{ fmtMoney(h.Gia_ban) }}</td>
-
+                  <!-- ✅ THÊM DÒNG NÀY -->
+<td class="qty">{{ h.So_luong || 0 }}</td>
                   <td><span class="tag currency">{{ h.Don_vi_tien_te }}</span></td>
                   <td><span class="tag lang">{{ h.Lang }}</span></td>
 
@@ -407,7 +460,7 @@
 
                   <td>
                     <button class="btn danger mini" type="button" @click.stop="removeItem(i)">
-                      x
+                      <i class="app-ico ri-close-line"></i>
                     </button>
                   </td>
                 </tr>
@@ -418,7 +471,7 @@
           <div class="submit-foot" v-if="list.length">
             <button class="btn success full" type="button" @click="submit" :disabled="submitting">
               <span v-if="submitting" class="spin"></span>
-              {{ submitting ? 'Đang gửi...' : '✅ Hoàn thành' }}
+              {{ submitting ? 'Đang gửi...' : 'Hoàn thành' }} <i class="app-ico ri-checkbox-circle-line"></i>
             </button>
           </div>
         </section>
@@ -433,7 +486,7 @@
     <textarea v-model="bulkText" rows="8" placeholder="Mỗi dòng là 1 giá trị"></textarea>
 
     <div class="bulk-buttons">
-      <button class="btn chip" @click="applyBulk('Ten_hang')"><i class="ri-add-circle-fill"></i>Tên hàng</button>
+      <button class="btn chip" @click="applyBulk('Ten_hang')"><i class="app-ico ri-add-circle-fill"></i>Tên hàng</button>
       <button class="btn chip" @click="applyBulk('Main_img')"><i class="ri-add-circle-fill"></i> Ảnh chính (URL)</button>
 
       <!-- ✅ 6 NÚT ẢNH PHỤ -->
@@ -450,7 +503,7 @@
 
       <button class="btn chip" @click="applyBulk('Gia_goc')"><i class="ri-add-circle-fill"></i> Giá gốc</button>
       <button class="btn chip" @click="applyBulk('Gia_ban')"><i class="ri-add-circle-fill"></i> Giá bán</button>
-
+      <button class="btn chip" @click="applyBulk('So_luong')"><i class="ri-add-circle-fill"></i> Số lượng</button>
       <button class="btn chip" @click="applyBulk('Don_vi_tien_te')"><i class="ri-add-circle-fill"></i> Tiền tệ</button>
       <button class="btn chip" @click="applyBulk('Lang')"><i class="ri-add-circle-fill"></i> Lang</button>
       <button class="btn chip" @click="applyBulk('Trang_thai')"><i class="ri-add-circle-fill"></i> Trạng thái</button>
@@ -467,7 +520,7 @@
       <!-- ================= MODAL ẢNH (XEM + COPY ALL, BỎ COPY ONE) ================= -->
       <div v-if="showBulkImageModal" class="modal-mask" @click.self="showBulkImageModal = false">
         <div class="modal-box wide">
-          <h3><i class="ri-image-fill"></i>Ảnh đã upload</h3>
+          <h3><i class="app-ico ri-image-fill"></i>Ảnh đã upload</h3>
 
           <div class="img-link-list">
             <div v-for="(url, i) in bulkImageUrls" :key="i" class="img-link-item">
@@ -495,7 +548,7 @@
               <div class="sheet-title">Hàng đã thêm ({{ list.length }})</div>
               <p class="sheet-subtitle">Kiểm tra lại trước khi gửi</p>
             </div>
-            <button class="btn ghost mini" type="button" @click="showMobileList = false">✖</button>
+            <button class="btn ghost mini" type="button" @click="showMobileList = false"><i class="app-ico ri-close-line"></i></button>
           </div>
 
           <div v-if="!list.length" class="empty sheet-empty">
@@ -522,7 +575,7 @@
               </div>
 
               <div class="right">
-                <button class="btn danger mini" type="button" @click="removeItem(i)">X</button>
+                <button class="btn danger mini" type="button" @click="removeItem(i)"><i class="app-ico ri-close-line"></i></button>
               </div>
             </div>
           </div>
@@ -532,7 +585,7 @@
       <!-- ================= DETAIL MODAL (FULL INFO) ================= -->
       <div v-if="showDetailModal" class="modal-mask" @click.self="showDetailModal = false">
         <div class="modal-box wide">
-          <h3><i class="ri-information-line"></i> Chi tiết hàng</h3>
+          <h3><i class="app-ico ri-information-line"></i> Chi tiết hàng</h3>
 
           <div class="detail-grid">
             <div class="detail-img">
@@ -567,6 +620,8 @@
               <div class="kv"><span class="k">Giá gốc:</span><span class="v money">{{ fmtMoney(detailItem?.Gia_goc, detailItem?.Don_vi_tien_te) }}</span></div>
               <div class="kv"><span class="k">Giá bán:</span><span class="v money strong">{{ fmtMoney(detailItem?.Gia_ban, detailItem?.Don_vi_tien_te) }}</span></div>
 
+              <!-- ✅ THÊM DÒNG NÀY -->
+<div class="kv"><span class="k">Số lượng:</span><span class="v qty">{{ detailItem?.So_luong || 0 }}</span></div>
               <div class="kv">
                 <span class="k">Tiền tệ:</span>
                 <span class="v"><span class="tag currency">{{ detailItem?.Don_vi_tien_te }}</span></span>
@@ -622,7 +677,7 @@
 
             <div class="edit-actions">
               <button type="button" class="btn primary" @click="editImageInput?.click()">
-                <i class="ri-image-add-line"></i>Đổi ảnh
+                <i class="app-ico ri-image-add-line"></i>Đổi ảnh
               </button>
 
               <div v-if="uploadingEditImg" class="hint"> Đang upload ảnh...</div>
@@ -658,7 +713,7 @@
                       type="button"
                       @click="editForm['img_' + slot] = ''"
                     >
-                      ×
+                      <i class="app-ico ri-close-line"></i>
                     </button>
                   </div>
                   <div v-else class="placeholder-mini">Ảnh {{ slot }}</div>
@@ -714,21 +769,34 @@
 </div>
             </div>
 
-            <div class="field span-4">
-              <label>Giá bán</label>
-              <div class="money-wrap">
+           <div class="field span-4">
+  <label>Giá bán</label>
+  <div class="money-wrap">
+    <input
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      class="money-input"
+      :value="fmtMoneyInput(editForm.Gia_ban)"
+      @input="(e) => (editForm.Gia_ban = parseMoneyInput(e.target.value))"
+      placeholder="0"
+    />
+  </div>
+</div>
+
+<!-- ✅ THÊM DÒNG NÀY -->
+<div class="field span-4">
+  <label>Số lượng</label>
   <input
-    type="text"
-    inputmode="numeric"
-    autocomplete="off"
-    class="money-input"
-    :value="fmtMoneyInput(editForm.Gia_ban)"
-    @input="(e) => (editForm.Gia_ban = parseMoneyInput(e.target.value))"
+    type="number"
+    v-model.number="editForm.So_luong"
+    min="0"
     placeholder="0"
   />
-  
 </div>
-            </div>
+
+<div class="field span-4">
+  <label>Ngôn ngữ</label>
 
             <div class="field span-4">
               <label>Ngôn ngữ</label>
@@ -763,16 +831,7 @@
       </div>
 
       <!-- ================= NOTIFY MODAL ================= -->
-      <div v-if="notify.open" class="modal-mask" @click.self="closeNotify">
-        <div class="notify-box" :class="notify.type">
-          <div class="notify-title">{{ notify.title }}</div>
-          <div class="notify-msg">{{ notify.message }}</div>
-
-          <div class="notify-actions">
-            <button class="btn primary" type="button" @click="closeNotify">OK</button>
-          </div>
-        </div>
-      </div>
+   
     </div>
   </div>
 
@@ -786,6 +845,17 @@
         <button class="btn ghost" type="button" @click="confirmCancel">Hủy</button>
       </div>
     </div>
+  </div>
+     <div v-if="notify.open" class="modal-mask" @click.self="closeNotify">
+        <div class="notify-box" :class="notify.type">
+          <div class="notify-title">{{ notify.title }}</div>
+          <div class="notify-msg">{{ notify.message }}</div>
+
+          <div class="notify-actions">
+            <button class="btn primary" type="button" @click="closeNotify">OK</button>
+          </div>
+        </div>
+      </div>
   </div>
 </template>
 
@@ -806,6 +876,11 @@ const nhaCungCapList = ref([])
 const defaultNCC = ref(null)
 
 const list = ref([])
+const productList = ref([]) // ✅ DANH SÁCH HÀNG HÓA TỪ SHEET
+const showSuggestions = ref(false)
+const isLoadingProducts = ref(false) // ✅ LOADING STATE
+const isAutoFilling = ref(false) // ✅ FLAG: Đang tự động điền từ gợi ý
+
 const isDirty = ref(false)
 
 const showBulkModal = ref(false)
@@ -828,6 +903,7 @@ const showBulkImageModal = ref(false)
 
 const bulkImageInput = ref(null)
 const excelInput = ref(null)
+const suggestionRef = ref(null) // ✅ REF ĐỂ CLICK OUTSIDE
 
 const showEditModal = ref(false)
 const editIndex = ref(null)
@@ -874,6 +950,7 @@ const emptyForm = () => ({
   Trang_thai: 'Còn hàng',
   Lang: 'vi',
   Don_vi_tien_te: '',
+   So_luong: '', // ✅ THÊM
   // ẩn nhưng vẫn nhận
   Ma_nha_cung_cap: '',
   Ten_nha_cung_cap: '',
@@ -912,12 +989,98 @@ async function loadNCC() {
   }
 }
 
+async function loadProducts() {
+  isLoadingProducts.value = true
+  try {
+    const res = await fetch(`${GAS_URL}?action=sheet&sheet=hang_hoa`)
+    const json = await res.json()
+    productList.value = json.data || []
+  } catch (err) {
+    console.error('❌ Lỗi load hàng hóa:', err)
+  } finally {
+    isLoadingProducts.value = false
+  }
+}
+
+function selectProduct(p) {
+  isAutoFilling.value = true // ✅ BẬT O
+
+  form.value = {
+    ...emptyForm(),
+    Ma_hang: p.Ma_hang || '',
+    Ten_hang: p.Ten_hang || '',
+    Main_img: p.Main_img || '',
+    Mo_ta: p.Mo_ta || '',
+    Danh_muc: p.Danh_muc || '',
+    Size: p.Size || '',
+    Dvt: p.Dvt || '',
+    Gia_goc: p.Gia_goc || '',
+    Gia_ban: p.Gia_ban || '',
+    Trang_thai: p.Trang_thai || 'Còn hàng',
+    Lang: p.Lang || 'vi',
+    Don_vi_tien_te: p.Don_vi_tien_te || 'VND',
+    So_luong: '', // Để trống để người dùng nhập số lượng mới
+    Ma_nha_cung_cap: p.Ma_nha_cung_cap || defaultNCC.value?.Ma_nha_cung_cap || '',
+    Ten_nha_cung_cap: p.Ten_nha_cung_cap || defaultNCC.value?.Ten_nha_cung_cap || '',
+    img_1: p.img_1 || '',
+    img_2: p.img_2 || '',
+    img_3: p.img_3 || '',
+    img_4: p.img_4 || '',
+    img_5: p.img_5 || '',
+    img_6: p.img_6 || ''
+  }
+  showSuggestions.value = false
+
+  // ✅ SAU KHI DOM UPDATE THÌ TẮT FLAG
+  setTimeout(() => {
+    isAutoFilling.value = false
+  }, 100)
+}
+
+const filteredSuggestions = ref([])
+
+function filterProducts(val) {
+  if (!val) {
+    // Nếu chưa nhập gì, hiển thị 50 hàng đầu tiên
+    filteredSuggestions.value = productList.value.slice(0, 50)
+    return
+  }
+  const search = val.toLowerCase()
+  filteredSuggestions.value = productList.value.filter(p => 
+    p.Ten_hang?.toLowerCase().includes(search) || 
+    p.Ma_hang?.toLowerCase().includes(search)
+  ).slice(0, 20)
+}
+
+function onFocus() {
+  showSuggestions.value = true
+  filterProducts(form.value.Ten_hang)
+}
+
+function clearSearch() {
+  // Xóa sạch form về mặc định, giữ lại NCC
+  form.value = {
+    ...emptyForm(),
+    Ma_nha_cung_cap: defaultNCC.value?.Ma_nha_cung_cap || '',
+    Ten_nha_cung_cap: defaultNCC.value?.Ten_nha_cung_cap || ''
+  }
+  onFocus() // show lại list full
+}
+
+watch(() => form.value.Ten_hang, (val) => {
+  filterProducts(val)
+})
+
 /* ================= AUTO GEN MÃ HÀNG ================= */
 watch(
   () => [form.value.Ten_hang, form.value.Ma_nha_cung_cap],
   ([tenHang, maNCC]) => {
     if (!tenHang || !maNCC) {
       form.value.Ma_hang = ''
+      return
+    }
+    // ✅ NẾU ĐANG AUTO FILL TỪ DANH SÁCH GỢI Ý THÌ KHÔNG GHI ĐÈ
+    if (isAutoFilling.value) {
       return
     }
     form.value.Ma_hang = genMaHangFE(tenHang, maNCC)
@@ -1054,24 +1217,28 @@ function buildPayload() {
     Danh_muc: i.Danh_muc,
     Size: i.Size,
     Dvt: i.Dvt,
-    Gia_goc: Number(i.Gia_goc || 0), // ✅
-    Gia_ban: Number(i.Gia_ban || 0), // ✅
+    Gia_goc: Number(i.Gia_goc || 0),
+    Gia_ban: Number(i.Gia_ban || 0),
+    So_luong: Number(i.So_luong || 0), // ✅ THÊM DÒNG NÀY
     Trang_thai: i.Trang_thai,
     Lang: i.Lang || 'vi',
     Don_vi_tien_te: i.Don_vi_tien_te || 'VND',
-      img_1: i.img_1 || '', // ✅
-    img_2: i.img_2 || '', // ✅
-    img_3: i.img_3 || '', // ✅
-    img_4: i.img_4 || '', // ✅
-    img_5: i.img_5 || '' , // ✅
-        img_6: i.img_6 || '' // ✅ THÊM
+    img_1: i.img_1 || '',
+    img_2: i.img_2 || '',
+    img_3: i.img_3 || '',
+    img_4: i.img_4 || '',
+    img_5: i.img_5 || '',
+    img_6: i.img_6 || ''
   }))
 }
-
 /* ================= SUBMIT ================= */
 async function submit() {
   if (submitting.value) return
   if (!list.value.length) return
+
+  const totalItems = list.value.length
+  
+  console.log('🚀 Bắt đầu submit, số hàng:', totalItems) // ✅ THÊM
 
   submitting.value = true
   try {
@@ -1087,14 +1254,15 @@ async function submit() {
       })
     })
 
-    openNotify('✅ Thành công', 'Đã gửi hàng hóa thành công!', 'success')
+    console.log('✅ Fetch xong, gọi openNotify') // ✅ THÊM
+    openNotify('✅ Thành công', `Đã thêm ${totalItems} hàng vào hệ thống!`, 'success')
 
     list.value = []
     isDirty.value = false
     showMobileList.value = false
     showDetailModal.value = false
   } catch (err) {
-    console.error(err)
+    console.error('❌ Lỗi submit:', err)
     openNotify('❌ Lỗi', 'Lỗi kết nối, không gửi được dữ liệu!', 'error')
   } finally {
     submitting.value = false
@@ -1144,37 +1312,38 @@ function importExcel(e) {
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' })
 
     rows.forEach((r) => {
-      const maNCC = r.Ma_nha_cung_cap || defaultNCC.value?.Ma_nha_cung_cap
-      const tenNCC = r.Ten_nha_cung_cap || defaultNCC.value?.Ten_nha_cung_cap
+      // ✅ LUÔN DÙNG DEFAULT NCC
+      const maNCC = defaultNCC.value?.Ma_nha_cung_cap || ''
+      const tenNCC = defaultNCC.value?.Ten_nha_cung_cap || ''
 
       const item = {
         Ma_hang: genMaHangFE(r.Ten_hang, maNCC),
         Ten_hang: r.Ten_hang,
         Main_img: r.Main_img,
-
-        Ma_nha_cung_cap: maNCC,
-        Ten_nha_cung_cap: tenNCC,
-
+        Ma_nha_cung_cap: maNCC, // ✅ Luôn có giá trị từ default
+        Ten_nha_cung_cap: tenNCC, // ✅ Luôn có giá trị từ default
         Mo_ta: r.Mo_ta,
         Danh_muc: r.Danh_muc,
         Size: r.Size,
         Dvt: r.Dvt,
-        Gia_goc: Number(r.Gia_goc || 0),
-        Gia_ban: Number(r.Gia_ban || 0),
+        Gia_goc: parseMoneyInput(String(r.Gia_goc || '')),
+        Gia_ban: parseMoneyInput(String(r.Gia_ban || '')),
         Trang_thai: r.Trang_thai || 'Còn hàng',
         Lang: r.Lang || 'vi',
         Don_vi_tien_te: r.Don_vi_tien_te || 'VND',
-        
-        // ✅ 6 ẢNH PHỤ TỪ EXCEL
         img_1: r.img_1 || '',
         img_2: r.img_2 || '',
         img_3: r.img_3 || '',
         img_4: r.img_4 || '',
         img_5: r.img_5 || '',
-        img_6: r.img_6 || ''
+        img_6: r.img_6 || '',
+        So_luong: r.So_luong ? Number(r.So_luong) : '',
       }
 
-      if (item.Ten_hang && item.Ma_nha_cung_cap) list.value.push(item)
+      // ✅ CHỈ KIỂM TRA TÊN HÀNG (VỪNG MÃ NCC ĐÃ CÓ TỪ DEFAULT)
+      if (item.Ten_hang) {
+        list.value.push(item)
+      }
     })
 
     openNotify('📥 Import', `Đã import ${rows.length} dòng`, 'success')
@@ -1200,7 +1369,12 @@ function applyBulk(field) {
       }
     }
 
-    list.value[index][field] = field.includes('Gia') ? Number(value || 0) : value
+    // ✅ XỬ LÝ SỐ CHO CẢ GIÁ VÀ SỐ LƯỢNG
+if (field.includes('Gia') || field === 'So_luong') {
+  list.value[index][field] = Number(value || 0)
+} else {
+  list.value[index][field] = value
+}
 
     if (defaultNCC.value) {
       list.value[index].Ma_nha_cung_cap = defaultNCC.value.Ma_nha_cung_cap
@@ -1408,13 +1582,22 @@ function fmtMoneyInput(val) {
 function computeMobile() {
   isMobile.value = window.innerWidth <= 640
 }
+function handleClickOutside(e) {
+  if (suggestionRef.value && !suggestionRef.value.contains(e.target)) {
+    showSuggestions.value = false
+  }
+}
+
 onMounted(() => {
   loadNCC()
+  loadProducts() // ✅ LOAD HÀNG HÓA
   computeMobile()
   window.addEventListener('resize', computeMobile)
+  window.addEventListener('click', handleClickOutside) // ✅ LẮNG NGHE CLICK
 })
 onUnmounted(() => {
   window.removeEventListener('resize', computeMobile)
+  window.removeEventListener('click', handleClickOutside) // ✅ REMOVE
 })
 </script>
 
@@ -1559,6 +1742,133 @@ h2 {
   background: rgba(15, 23, 42, 0.5);
   color: #cbd5e1;
   text-align: center;
+}
+
+/* ================== SUGGESTIONS ================== */
+.relative {
+  position: relative;
+}
+
+.suggestion-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  margin-top: 4px;
+}
+
+/* ================== INPUT ICON ================== */
+.input-icon-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon-wrap input {
+  padding-right: 32px; /* make room for icon */
+}
+
+.input-status-icon {
+  position: absolute;
+  right: 36px; /* Cách nút xoá một chút */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.btn-clear-input {
+  position: absolute;
+  right: 6px;
+  background: #ef4444;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.btn-clear-input:hover {
+  background: #dc2626;
+  color: white;
+}
+
+.spin-icon {
+  color: #94a3b8;
+  animation: spin 1s linear infinite;
+  font-size: 18px;
+}
+
+.success-icon {
+  color: #4ade80;
+  font-size: 18px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background: rgba(134, 239, 172, 0.1);
+}
+
+.suggest-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.suggest-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.suggest-name {
+  color: #f8fafc;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggest-meta {
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 /* ================== FORM ================== */
@@ -2028,7 +2338,12 @@ h2 {
   font-weight: 700;
   color: #f8fafc;
 }
-
+.qty {
+  text-align: center;
+  font-weight: 600;
+  color: #22c55e;
+  font-variant-numeric: tabular-nums;
+}
 .thumb {
   width: 46px;
   height: 46px;

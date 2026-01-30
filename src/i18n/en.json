@@ -24,7 +24,7 @@
   "cart": {
     "title": "ORDER",
     "quantity": "Quantity",
-    "total": "Total",
+    "total": "Total (cash)",
     "phone": "Phone number (or Telegram if no phone)",
     "phonePlaceholder": "Enter phone / Telegram",
     "address": "Delivery address",
@@ -33,27 +33,24 @@
     "timePlaceholder": "Ex: 18:30",
     "note": "Additional note for shop",
     "notePlaceholder": "Note for shop (less spicy, deliver before 7pm...)",
-    "finish": "FINISH",
+    "finish": "Send Order to Shop",
     "back": "BACK"
   },
-"export": {
-  "title": "ORDER CONTENT",
-  "copy": "Copy order",
-  "copied": "Copied",
-  "send": "Send order via",
-
-  "total": "Total",
-  "address": "Address",
-  "phone": "Phone",
-  "time": "Delivery time",
-  "note": "Additional note"
-},
-"status": {
-  "in_stock": "In stock",
-  "out_stock": "Out of stock"
-}
-
-,
+  "export": {
+    "title": "ORDER CONTENT",
+    "copy": "Copy order",
+    "copied": "Copied",
+    "send": "Send order via",
+    "total": "Total",
+    "address": "Address",
+    "phone": "Phone",
+    "time": "Delivery time",
+    "note": "Additional note"
+  },
+  "status": {
+    "in_stock": "In stock",
+    "out_stock": "Out of stock"
+  },
   "mobile": {
     "category": "Category",
     "contact": "Contact",

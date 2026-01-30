@@ -24,7 +24,7 @@
   "cart": {
     "title": "ĐƠN HÀNG",
     "quantity": "Số lượng",
-    "total": "Tổng cộng",
+    "total": "Tổng cộng (tiền mặt)",
     "phone": "Số điện thoại ( hoặc tele nếu không có sdt)",
     "phonePlaceholder": "Nhập số điện thoại / tele",
     "address": "Địa chỉ giao hàng",
@@ -33,27 +33,24 @@
     "timePlaceholder": "VD: 18h30",
     "note": "Ghi chú thêm cho quán",
     "notePlaceholder": "Ghi chú cho quán (ít cay, giao trước 7h...)",
-    "finish": "HOÀN THÀNH",
+    "finish": "Gửi đơn cho shop",
     "back": "QUAY LẠI"
   },
- "export": {
-  "title": "NỘI DUNG ĐƠN HÀNG",
-  "copy": "Copy đơn hàng",
-  "copied": "Đã copy",
-  "send": "Gửi đơn qua",
-
-  "total": "Tổng cộng",
-  "address": "Địa chỉ",
-  "phone": "SĐT",
-  "time": "Thời gian giao",
-  "note": "Ghi chú thêm"
-},
-"status": {
-  "in_stock": "Còn hàng",
-  "out_stock": "Hết hàng"
-}
-
-,
+  "export": {
+    "title": "NỘI DUNG ĐƠN HÀNG",
+    "copy": "Copy đơn hàng",
+    "copied": "Đã copy",
+    "send": "Gửi đơn qua",
+    "total": "Tổng cộng",
+    "address": "Địa chỉ",
+    "phone": "SĐT",
+    "time": "Thời gian giao",
+    "note": "Ghi chú thêm"
+  },
+  "status": {
+    "in_stock": "Còn hàng",
+    "out_stock": "Hết hàng"
+  },
   "mobile": {
     "category": "Danh mục",
     "contact": "Liên hệ",

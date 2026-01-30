@@ -13,7 +13,7 @@
         class="search-input"
         @input="handleSearch"
       />
-      <button v-if="keyword" @click="clearSearch" class="search-clear">✕</button>
+      <button v-if="keyword" @click="clearSearch" class="search-clear"><i class="app-ico ri-close-line"></i></button>
     </div>
   </div>
 </div>
@@ -30,60 +30,121 @@
           class="search-input"
           @input="handleSearch"
         />
-        <button v-if="keyword" @click="clearSearch" class="search-clear">✕</button>
+        <button v-if="keyword" @click="clearSearch" class="search-clear"><i class="app-ico ri-close-line"></i></button>
       </div>
       
   <!-- ===== 6 BUTTONS GRID: 3 x 2 ===== -->
 <!-- ===== 8 BUTTONS GRID: 4 x 2 ===== -->
-<div class="action-grid-8">
-  <!-- 1) Danh mục -->
-  <button class="btn-filter" :class="{ active: showCategoryFilter }" @click="showCategoryFilter = !showCategoryFilter">
-    <span class="btn-icon"><i class="ri-list-check"></i></span>
-    <span class="btn-text">Danh mục</span>
-    <span v-if="selectedCategory" class="filter-badge">1</span>
-  </button>
+<!-- ===== NEW FILTER LAYOUT (2 ROWS) ===== -->
+<div class="filter-grid-rows">
+  <!-- ROW 1 -->
+  <div class="f-row">
+    <!-- 1. Language Dropdown -->
+    <div class="dropdown-wrapper">
+      <button class="btn-filter btn-dropdown" :class="{ active: selectedLanguage, 'menu-open': showLanguageMenu }" @click.stop="showLanguageMenu = !showLanguageMenu">
+        <span class="btn-icon"><i class="ri-global-line"></i></span>
+        <span class="btn-text">{{ getLanguageLabel() }}</span>
+        <span class="arrow-icon"><i class="ri-arrow-down-s-line"></i></span>
+      </button>
 
-  <!-- 2) Ngôn ngữ - MỚI -->
-  <button class="btn-filter" :class="{ active: selectedLanguage }" @click="cycleLanguageFilter">
-    <span class="btn-icon"><i class="ri-global-line"></i></span>
-    <span class="btn-text">{{ getLanguageLabel() }}</span>
-  </button>
+      <transition name="slide-down">
+        <div v-if="showLanguageMenu" class="dropdown-menu">
+          <button class="menu-item" :class="{ active: selectedLanguage === 'vi' }" @click="selectLanguage('vi')">
+            <i class="ri-flag-fill"></i> Tiếng Việt
+          </button>
+          <button class="menu-item" :class="{ active: selectedLanguage === 'en' }" @click="selectLanguage('en')">
+            <i class="ri-english-input"></i> English
+          </button>
+          <button class="menu-item" :class="{ active: selectedLanguage === 'zh-CN' }" @click="selectLanguage('zh-CN')">
+             <i class="ri-translate-2"></i> Tiếng Trung
+          </button>
+           <button class="menu-item" :class="{ active: selectedLanguage === 'fil' }" @click="selectLanguage('fil')">
+             <i class="ri-earth-line"></i> Phillipines
+          </button>
+           <button class="menu-item" :class="{ active: selectedLanguage === 'ko' }" @click="selectLanguage('ko')">
+             <i class="ri-font-size"></i> Hàn Quốc
+          </button>
+          <button class="menu-item" :class="{ active: selectedLanguage === '' }" @click="selectLanguage('')">
+            <i class="ri-apps-line"></i> Tất cả
+          </button>
+        </div>
+      </transition>
+    </div>
+    <!-- 2. Category -->
+    <button class="btn-filter" :class="{ active: showCategoryFilter }" @click="showCategoryFilter = !showCategoryFilter">
+      <span class="btn-icon"><i class="ri-list-check"></i></span>
+      <span class="btn-text">Danh mục</span>
+      <span v-if="selectedCategory" class="filter-badge">1</span>
+    </button>
+    <!-- 3. Sort -->
+    <button class="btn-filter" @click="toggleSortOrder">
+      <span class="btn-icon">
+        <i v-if="sortOrder === 'desc'" class="ri-sort-desc"></i>
+        <i v-else class="ri-sort-asc"></i>
+      </span>
+      <span class="btn-text">{{ sortOrder === 'desc' ? 'Mới → Cũ' : 'Cũ → Mới' }}</span>
+    </button>
+  </div>
 
-  <!-- 3) Khuyến mãi -->
-  <button class="btn-filter" :class="{ active: filterPromotion }" @click="togglePromotionFilter">
-    <span class="btn-icon"><i class="ri-price-tag-3-fill"></i></span>
-    <span class="btn-text">Khuyến mãi</span>
-  </button>
+  <!-- ROW 2 -->
+  <div class="f-row">
+    <!-- 4. Promotion -->
+    <button class="btn-filter" :class="{ active: filterPromotion }" @click="togglePromotionFilter">
+      <span class="btn-icon"><i class="ri-price-tag-3-fill"></i></span>
+      <span class="btn-text">Khuyến mãi</span>
+      <span v-if="countPromo > 0" class="filter-badge">{{ countPromo }}</span>
+    </button>
+    
+    <!-- 5. Status Dropdown -->
+    <div class="dropdown-wrapper">
+      <button class="btn-filter btn-dropdown" :class="{ active: filterStatus !== 'all', 'menu-open': showStatusMenu }" @click.stop="showStatusMenu = !showStatusMenu">
+        <span class="btn-icon"><i class="ri-checkbox-circle-line"></i></span>
+        <span class="btn-text">{{ getStatusLabel() }}</span>
+        <span v-if="countStatusResult > 0" class="filter-badge">{{ countStatusResult }}</span>
+        <span class="arrow-icon"><i class="ri-arrow-down-s-line"></i></span>
+      </button>
+      
+      <transition name="slide-down">
+        <div v-if="showStatusMenu" class="dropdown-menu">
+          <button class="menu-item" :class="{ active: filterStatus === 'available' }" @click="selectStatus('available')">
+            <i class="ri-verified-badge-fill text-success"></i> Còn hàng
+          </button>
+          <button class="menu-item" :class="{ active: filterStatus === 'low' }" @click="selectStatus('low')">
+            <i class="ri-history-fill text-warning"></i> Sắp hết
+          </button>
+          <button class="menu-item" :class="{ active: filterStatus === 'out' }" @click="selectStatus('out')">
+            <i class="ri-close-circle-fill text-danger"></i> Hết hàng
+          </button>
+           <button class="menu-item" :class="{ active: filterStatus === 'all' }" @click="selectStatus('all')">
+            <i class="ri-apps-line"></i> Tất cả
+          </button>
+        </div>
+      </transition>
+    </div>
 
-  <!-- 4) Trạng thái -->
-  <button class="btn-filter" :class="{ active: filterStatus !== 'all' }" @click="cycleStatusFilter">
-    <span class="btn-icon">
-      <i v-if="filterStatus === 'available'" class="ri-verified-badge-fill"></i>
-      <span v-else-if="filterStatus === 'out'"><i class="ri-close-circle-fill"></i></span>
-      <span v-else><i class="ri-box-3-fill"></i></span>
-    </span>
-    <span class="btn-text">{{ getStatusLabel() }}</span>
-  </button>
+    <!-- 6. Export Dropdown -->
+    <div class="dropdown-wrapper">
+      <button class="btn-filter btn-dropdown" :class="{ 'menu-open': showExportMenu }" @click.stop="showExportMenu = !showExportMenu">
+        <span class="btn-icon"><i class="ri-download-2-line"></i></span>
+        <span class="btn-text">Xuất hàng</span>
+        <span class="arrow-icon"><i class="ri-arrow-down-s-line"></i></span>
+      </button>
 
-  <!-- 5) Sắp xếp - MỚI -->
-  <button class="btn-filter" @click="toggleSortOrder">
-    <span class="btn-icon">
-      <i v-if="sortOrder === 'desc'" class="ri-sort-desc"></i>
-      <i v-else class="ri-sort-asc"></i>
-    </span>
-    <span class="btn-text">{{ sortOrder === 'desc' ? 'Mới → Cũ' : 'Cũ → Mới' }}</span>
-  </button>
-
-  <!-- 6,7,8) Export -->
-  <button class="btn-export" @click="exportText">
-    <span class="btn-text">Tên : Giá</span>
-  </button>
-  <button class="btn-export" @click="exportTen">
-    <span class="btn-text">Tên hàng</span>
-  </button>
-  <button class="btn-export" @click="exportGia">
-    <span class="btn-text">Giá bán</span>
-  </button>
+      <transition name="slide-down">
+        <div v-if="showExportMenu" class="dropdown-menu right-align">
+          <button class="menu-item" @click="selectExport('text')">
+            <i class="ri-file-text-line"></i> Tên : Giá
+          </button>
+          <button class="menu-item" @click="selectExport('name')">
+            <i class="ri-text"></i> Tên hàng
+          </button>
+          <button class="menu-item" @click="selectExport('price')">
+             <i class="ri-money-dollar-circle-line"></i> Giá bán
+          </button>
+        </div>
+      </transition>
+    </div>
+  </div>
 </div>
 
 <!-- Category dropdown (GIỮ NGUYÊN) -->
@@ -176,6 +237,7 @@
               <th style="width: 100px" class="text-center">Giá gốc</th>
               <th style="width: 100px" class="text-center">Giá bán</th>
               <th style="width: 100px" class="text-center">Giá giảm</th>
+              <th style="width: 90px" class="text-center">Số lượng kho</th>
               <th style="width: 80px" class="text-center">Tiền tệ</th>
               <th style="width: 70px" class="text-center">Ngôn Ngữ</th>
               <th style="width: 120px" class="text-center">Trạng thái</th>
@@ -244,6 +306,9 @@
                 </span>
                 <span v-else class="text-muted">—</span>
               </td>
+              <td class="text-center text-number stock-cell" @click.stop="openEdit(item, { focusField: 'So_luong_kho' })">
+  <span class="stock-value">{{ item.So_luong_kho || 0 }}</span>
+</td>
               <td class="text-center" @click.stop="openEdit(item, { focusField: 'Don_vi_tien_te' })">
                 <span class="badge badge-currency">{{ item.Don_vi_tien_te || 'VND' }}</span>
               </td>
@@ -281,7 +346,7 @@
             @click="goToPage(1)"
             title="Trang đầu"
           >
-            ⏮
+            <i class="app-ico ri-skip-back-line"></i>
           </button>
           <button 
             class="pagination-btn pagination-arrow" 
@@ -289,7 +354,7 @@
             @click="goToPage(currentPage - 1)"
             title="Trang trước"
           >
-            ◀
+            <i class="app-ico ri-arrow-left-s-line"></i>
           </button>
           
           <template v-for="page in displayPages" :key="page">
@@ -301,7 +366,7 @@
             >
               {{ page }}
             </button>
-            <span v-else class="pagination-ellipsis">...</span>
+            <span v-else class="pagination-ellipsis"><i class="app-ico ri-more-line"></i></span>
           </template>
           
           <button 
@@ -310,7 +375,7 @@
             @click="goToPage(currentPage + 1)"
             title="Trang sau"
           >
-            ▶
+            <i class="app-ico ri-arrow-right-s-line"></i>
           </button>
           <button 
             class="pagination-btn pagination-arrow" 
@@ -318,7 +383,7 @@
             @click="goToPage(totalPages)"
             title="Trang cuối"
           >
-            ⏭
+            <i class="app-ico ri-skip-forward-line"></i>
           </button>
         </div>
       </div>
@@ -385,6 +450,11 @@
                     {{ formatNumber(item.Gia_Giam) }} {{ item.Don_vi_tien_te || 'VND' }}
                   </span>
                 </div>
+                  <!-- ✅ THÊM DÒNG NÀY -->
+  <div class="price-row">
+    <span class="price-label">Tồn kho</span>
+    <span class="price-value stock">{{ item.So_luong_kho || 0 }}</span>
+  </div>
                 <div class="price-row">
                   <span class="price-label">Ngôn ngữ</span>
                   <span class="price-value lang">{{ getLanguageDisplayName(item.Lang) }}</span>
@@ -492,7 +562,7 @@
 </button>
 
 
-    <button class="btn-close-sidebar" @click="attemptCloseSidebar">✕</button>
+    <button class="btn-close-sidebar" @click="attemptCloseSidebar"><i class="app-ico ri-close-line"></i></button>
   </div>
 </div>
 
@@ -667,57 +737,70 @@
 
               <!-- Tien te, Gia goc, Gia ban, Gia giam -->
               <div class="form-section">
-                <div class="form-row form-row-4">
-                  <div class="form-group">
-                    <label class="form-label">Tiền tệ</label>
-                    <input
-                      data-field="Don_vi_tien_te"
-                      v-model="edit.Don_vi_tien_te"
-                      placeholder="VND"
-                      class="form-control"
-                      @input="markAsEdited"
-                    />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Giá gốc</label>
-                    <input
-  data-field="Gia_goc"
-  type="text"
-  inputmode="numeric"
-  autocomplete="off"
-  class="form-control"
-  :value="fmtMoney(edit.Gia_goc)"
-  @input="onMoneyInput($event, 'Gia_goc')"
-/>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Giá bán</label>
-                    <!-- Giá bán -->
-<input
-  data-field="Gia_ban"
-  type="text"
-  inputmode="numeric"
-  autocomplete="off"
-  class="form-control"
-  :value="fmtMoney(edit.Gia_ban)"
-  @input="onMoneyInput($event, 'Gia_ban')"
-/>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Giá giảm</label>
-                <input
-  data-field="Gia_Giam"
-  type="text"
-  inputmode="numeric"
-  autocomplete="off"
-  class="form-control"
-  :class="{ 'form-control-highlight': isDiscountMode }"
-  :value="fmtMoney(edit.Gia_Giam)"
-  @input="onMoneyInput($event, 'Gia_Giam')"
-/>
-                  </div>
-                </div>
-              </div>
+  <div class="form-row form-row-5">
+    <div class="form-group">
+      <label class="form-label">Tiền tệ</label>
+      <input
+        data-field="Don_vi_tien_te"
+        v-model="edit.Don_vi_tien_te"
+        placeholder="VND"
+        class="form-control"
+        @input="markAsEdited"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá gốc</label>
+      <input
+        data-field="Gia_goc"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="form-control"
+        :value="fmtMoney(edit.Gia_goc)"
+        @input="onMoneyInput($event, 'Gia_goc')"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá bán</label>
+      <input
+        data-field="Gia_ban"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="form-control"
+        :value="fmtMoney(edit.Gia_ban)"
+        @input="onMoneyInput($event, 'Gia_ban')"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá giảm</label>
+      <input
+        data-field="Gia_Giam"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="form-control"
+        :class="{ 'form-control-highlight': isDiscountMode }"
+        :value="fmtMoney(edit.Gia_Giam)"
+        @input="onMoneyInput($event, 'Gia_Giam')"
+      />
+    </div>
+    
+    <!-- ✅ THÊM DÒNG NÀY -->
+    <div class="form-group">
+      <label class="form-label">Số lượng kho</label>
+      <input
+        data-field="So_luong_kho"
+        type="number"
+        v-model.number="edit.So_luong_kho"
+        class="form-control"
+        min="0"
+        placeholder="0"
+        @input="markAsEdited"
+      />
+    </div>
+  </div>
+</div>
 
               <!-- Mo ta -->
               <div class="form-section">
@@ -766,7 +849,7 @@
         <div class="modal-container" @click.stop>
           <div class="modal-header">
             <h2 class="modal-title">Chỉnh sửa sản phẩm <i class="ri-edit-box-fill"></i></h2>
-            <button class="btn-close-modal" @click="attemptCloseModal">✕</button>
+            <button class="btn-close-modal" @click="attemptCloseModal"><i class="app-ico ri-close-line"></i></button>
           </div>
 
           <div class="modal-body">
@@ -932,60 +1015,74 @@
                       </div>
                     </div>
                   </div>
-                  <div class="modal-section-card">
-                    <div class="modal-section-title">Giá & tiền tệ</div>
-                    <div class="modal-section-grid modal-section-grid-2">
-                      <div class="form-group">
-                        <label class="form-label">Tiền tệ</label>
-                        <input
-                          data-field="Don_vi_tien_te"
-                          v-model="edit.Don_vi_tien_te"
-                          placeholder="VND"
-                          class="form-control"
-                          @input="markAsEdited"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="form-label">Giá gốc</label>
-                        <input
-                          data-field="Gia_goc"
-                          type="text"
-                          inputmode="numeric"
-                          autocomplete="off"
-                          class="form-control"
-                          :value="fmtMoney(edit.Gia_goc)"
-                          @input="onMoneyInput($event, 'Gia_goc')"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="form-label">Giá bán</label>
-                        <input
-                          data-field="Gia_ban"
-                          type="text"
-                          inputmode="numeric"
-                          autocomplete="off"
-                          class="form-control"
-                          :value="fmtMoney(edit.Gia_ban)"
-                          @input="onMoneyInput($event, 'Gia_ban')"
-                        />
-                      </div>
-                      <div class="form-group">
-                        <label class="form-label">Giá giảm</label>
-                        <input
-                          data-field="Gia_Giam"
-                          ref="discountInputModal"
-                          type="text"
-                          inputmode="numeric"
-                          autocomplete="off"
-                          placeholder="0"
-                          class="form-control"
-                          :class="{ 'form-control-highlight': isDiscountMode }"
-                          :value="fmtMoney(edit.Gia_Giam)"
-                          @input="onMoneyInput($event, 'Gia_Giam')"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                <div class="modal-section-card">
+  <div class="modal-section-title">Giá & Tồn kho</div>
+  <div class="modal-section-grid modal-section-grid-2">
+    <div class="form-group">
+      <label class="form-label">Tiền tệ</label>
+      <input
+        data-field="Don_vi_tien_te"
+        v-model="edit.Don_vi_tien_te"
+        placeholder="VND"
+        class="form-control"
+        @input="markAsEdited"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá gốc</label>
+      <input
+        data-field="Gia_goc"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="form-control"
+        :value="fmtMoney(edit.Gia_goc)"
+        @input="onMoneyInput($event, 'Gia_goc')"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá bán</label>
+      <input
+        data-field="Gia_ban"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        class="form-control"
+        :value="fmtMoney(edit.Gia_ban)"
+        @input="onMoneyInput($event, 'Gia_ban')"
+      />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Giá giảm</label>
+      <input
+        data-field="Gia_Giam"
+        ref="discountInputModal"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="0"
+        class="form-control"
+        :class="{ 'form-control-highlight': isDiscountMode }"
+        :value="fmtMoney(edit.Gia_Giam)"
+        @input="onMoneyInput($event, 'Gia_Giam')"
+      />
+    </div>
+    
+    <!-- ✅ THÊM DÒNG NÀY -->
+    <div class="form-group">
+      <label class="form-label">Số lượng kho</label>
+      <input
+        data-field="So_luong_kho"
+        type="number"
+        v-model.number="edit.So_luong_kho"
+        class="form-control"
+        min="0"
+        placeholder="0"
+        @input="markAsEdited"
+      />
+    </div>
+  </div>
+</div>
                 </div>
                 <div class="modal-section-card modal-section-card--wide">
                   <div class="modal-section-title">Mô tả sản phẩm</div>
@@ -1111,7 +1208,7 @@ const list = ref([])
 const keyword = ref('')
 const selected = ref([])
 const sortOrder = ref('desc') // 'desc' = mới → cũ, 'asc' = cũ → mới
-const selectedLanguage = ref('') // '', 'vi', 'en', 'zh-CN', 'fil', 'ko'
+const selectedLanguage = ref('vi') // Default to 'vi'
 // Filter states
 const selectedCategory = ref('')
 const filterPromotion = ref(false)
@@ -1321,21 +1418,13 @@ function togglePromotionFilter() {
   currentPage.value = 1
 }
 
-function cycleStatusFilter() {
-  if (filterStatus.value === 'all') {
-    filterStatus.value = 'available'
-  } else if (filterStatus.value === 'available') {
-    filterStatus.value = 'out'
-  } else {
+function setStatusFilter(status) {
+  if (filterStatus.value === status) {
     filterStatus.value = 'all'
+  } else {
+    filterStatus.value = status
   }
   currentPage.value = 1
-}
-
-function getStatusLabel() {
-  if (filterStatus.value === 'available') return 'Còn hàng'
-  if (filterStatus.value === 'out') return 'Hết hàng'
-  return 'Còn hàng / Hết hàng'
 }
 
 const hasActiveFilters = computed(() => {
@@ -1349,15 +1438,15 @@ function clearAllFilters() {
   filterStatus.value = 'all'
   currentPage.value = 1
 }
+
 function toggleSortOrder() {
   sortOrder.value = sortOrder.value === 'desc' ? 'asc' : 'desc'
   currentPage.value = 1
 }
 
-function cycleLanguageFilter() {
-  const langs = ['', 'vi', 'en', 'zh-CN', 'fil', 'ko']
-  const currentIndex = langs.indexOf(selectedLanguage.value)
-  selectedLanguage.value = langs[(currentIndex + 1) % langs.length]
+function selectLanguage(lang) {
+  selectedLanguage.value = lang
+  showLanguageMenu.value = false
   currentPage.value = 1
 }
 
@@ -1373,6 +1462,8 @@ function getLanguageLabel() {
   return labels[selectedLanguage.value] || 'Ngôn ngữ'
 }
 
+
+
 function getLanguageDisplayName(lang) {
   const names = {
     'vi': 'Tiếng Việt',
@@ -1383,6 +1474,31 @@ function getLanguageDisplayName(lang) {
   }
   return names[lang] || (lang || 'vi').toUpperCase()
 }
+
+// ===== DROPDOWN STATE =====
+const showStatusMenu = ref(false)
+const showExportMenu = ref(false)
+const showLanguageMenu = ref(false)
+
+function getStatusLabel() {
+  if (filterStatus.value === 'available') return 'Còn hàng'
+  if (filterStatus.value === 'low') return 'Sắp hết'
+  if (filterStatus.value === 'out') return 'Hết hàng'
+  return 'Trạng thái'
+}
+
+function selectStatus(key) {
+  setStatusFilter(key)
+  showStatusMenu.value = false
+}
+
+function selectExport(type) {
+  showExportMenu.value = false
+  if (type === 'text') exportText()
+  if (type === 'name') exportTen()
+  if (type === 'price') exportGia()
+}
+
 /* ===== SEARCH ===== */
 function handleSearch() {
   currentPage.value = 1
@@ -1506,37 +1622,60 @@ function removeSupplementaryImage(key) {
 }
 
 /* ===== COMPUTED ===== */
+/* ===== FILTER HELPERS ===== */
+function matchesKeyword(item) {
+  if (!keyword.value) return true
+  const searchTerm = keyword.value.toLowerCase()
+  return (item.Ma_hang || '').toLowerCase().includes(searchTerm) ||
+         (item.Ten_hang || '').toLowerCase().includes(searchTerm)
+}
+
+function matchesCategory(item) {
+  if (!selectedCategory.value) return true
+  return (item.Danh_muc || 'Khác') === selectedCategory.value
+}
+
+function matchesLanguage(item) {
+  if (!selectedLanguage.value) return true
+  return (item.Lang || 'vi') === selectedLanguage.value
+}
+
+function matchesPromo(item) {
+  return item.Gia_Giam && item.Gia_Giam > 0
+}
+
+function matchesStatus(item, status) {
+  if (status === 'all') return true
+  const qty = Number(item.So_luong_kho || 0)
+  if (status === 'out') return qty === 0
+  if (status === 'low') return qty >= 1 && qty <= 10
+  if (status === 'available') return qty > 0
+  return true
+}
+
+/* ===== COMPUTED ===== */
+// List after Search + Category + Language (Base for other counts)
+const baseList = computed(() => list.value.filter(item => 
+  matchesKeyword(item) && matchesCategory(item) && matchesLanguage(item)
+))
+
+// Count Promo items (within current base list + current status)
+const countPromo = computed(() => {
+  return baseList.value.filter(item => 
+    matchesStatus(item, filterStatus.value) && matchesPromo(item)
+  ).length
+})
+
+// Count Result items (Current View Count) - implicitly the status count
+const countStatusResult = computed(() => filtered.value.length)
+
 const filtered = computed(() =>
-  list.value.filter(item => {
-    // Keyword search
-    if (keyword.value) {
-      const searchTerm = keyword.value.toLowerCase()
-      const matchKeyword = 
-        (item.Ma_hang || '').toLowerCase().includes(searchTerm) ||
-        (item.Ten_hang || '').toLowerCase().includes(searchTerm)
-      if (!matchKeyword) return false
-    }
-
-    // Category filter
-    if (selectedCategory.value) {
-      if ((item.Danh_muc || 'Khác') !== selectedCategory.value) return false
-    }
-
-    // Language filter - MỚI
-    if (selectedLanguage.value) {
-      if ((item.Lang || 'vi') !== selectedLanguage.value) return false
-    }
-
+  baseList.value.filter(item => {
     // Promotion filter
-    if (filterPromotion.value) {
-      if (!item.Gia_Giam || item.Gia_Giam <= 0) return false
-    }
+    if (filterPromotion.value && !matchesPromo(item)) return false
 
     // Status filter
-    if (filterStatus.value !== 'all') {
-      if (filterStatus.value === 'available' && item.Trang_thai !== 'Còn hàng') return false
-      if (filterStatus.value === 'out' && item.Trang_thai !== 'Hết hàng') return false
-    }
+    if (!matchesStatus(item, filterStatus.value)) return false
 
     return true
   })
@@ -2113,6 +2252,8 @@ function onMoneyInput(e, key) {
   padding: 20px;
   margin-bottom: 24px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative; /* Ensure z-index works */
+  z-index: 50; /* Higher than table header */
 }
 
 .filter-section.sticky {
@@ -2215,6 +2356,7 @@ function onMoneyInput(e, key) {
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  width: 100%; /* Ensure equal width in grid */
 }
 
 .btn-filter:hover {
@@ -2972,7 +3114,32 @@ function onMoneyInput(e, key) {
 .price-value.lang {
   color: #3b82f6;
 }
+.price-value.primary {
+  color: #22c55e;
+}
 
+.price-value.sale {
+  color: #f87171;
+}
+
+.price-value.lang {
+  color: #3b82f6;
+}
+
+/* ✅ THÊM DÒNG NÀY */
+.price-value.stock {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.stock-cell {
+  font-weight: 600;
+}
+
+.stock-value {
+  color: #fbbf24;
+  font-weight: 700;
+}
 .price-badges {
   display: flex;
   gap: 6px;
@@ -3163,7 +3330,22 @@ function onMoneyInput(e, key) {
 .form-row-4 {
   grid-template-columns: repeat(2, 1fr);
 }
+.form-row-4 {
+  grid-template-columns: repeat(2, 1fr);
+}
 
+/* ✅ THÊM DÒNG NÀY */
+.form-row-5 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Mobile: 1 cột */
+@media (max-width: 768px) {
+  .form-row-4,
+  .form-row-5 {
+    grid-template-columns: 1fr;
+  }
+}
 .modal-body-grid {
   display: grid;
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
@@ -4139,6 +4321,127 @@ function onMoneyInput(e, key) {
 }
 .ri-search-line{
   color: white;
+}
+  /* ===== NEW FILTER GRID CSS ===== */
+.filter-grid-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.f-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* Mobile: Stack rows or keep grid? User asked for layout. 
+   On mobile, 3 items per row might be tight but doable with smaller font.
+   Let's keep it responsive. */
+@media (max-width: 600px) {
+  .f-row {
+    gap: 8px;
+  }
+}
+
+/* Dropdown Wrapper */
+.dropdown-wrapper {
+  position: relative;
+}
+
+.btn-dropdown {
+  justify-content: space-between;
+  padding-right: 12px;
+}
+
+.arrow-icon {
+  margin-left: auto;
+  font-size: 16px;
+  color: #64748b;
+  transition: transform 0.2s;
+}
+
+.btn-dropdown.menu-open .arrow-icon {
+  transform: rotate(180deg);
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  min-width: 180px; /* Ensure enough width */
+  margin-top: 6px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  z-index: 50;
+  overflow: hidden;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-menu.right-align {
+  left: auto;
+  right: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.menu-item:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #fff;
+}
+
+.menu-item.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.menu-item i {
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.menu-item:hover i {
+  color: #fff;
+}
+
+.text-success { color: #10b981 !important; }
+.text-warning { color: #fbbf24 !important; }
+.text-danger { color: #ef4444 !important; }
+
+/* Animation */
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>
 

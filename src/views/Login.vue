@@ -13,7 +13,7 @@
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
             <label>
-              <i class="ri-user-line"></i>
+              <i class="app-ico ri-user-line"></i>
               Tên đăng nhập
             </label>
             <input
@@ -27,7 +27,7 @@
 
           <div class="form-group">
             <label>
-              <i class="ri-lock-password-line"></i>
+              <i class="app-ico ri-lock-password-line"></i>
               Mật khẩu
             </label>
             <input
@@ -41,12 +41,12 @@
 
           <button type="submit" :disabled="loading" class="login-btn">
             <span v-if="loading" class="spinner"></span>
-            <span v-else><i class="ri-login-box-line"></i></span>
+            <span v-else><i class="app-ico ri-login-box-line"></i></span>
             <span>{{ loading ? 'ĐANG ĐĂNG NHẬP...' : 'ĐĂNG NHẬP' }}</span>
           </button>
 
           <div v-if="error" class="error-box">
-            <i class="ri-error-warning-line"></i>
+            <i class="app-ico ri-error-warning-line"></i>
             <span>{{ error }}</span>
           </div>
         </form>

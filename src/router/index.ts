@@ -14,6 +14,12 @@ import Khuyenmai from '@/views/Khuyenmai.vue'
 import OpenTime from '@/views/OpenTime.vue'
 import ContactShop from '@/views/ContactShop.vue'
 import Login from '@/views/Login.vue'
+import NhapHoaDon from '@/views/nhaphoadon.vue'
+import DonHang from '@/views/donhang.vue'
+import BaoCao from '@/views/baocao.vue'
+import ChiPhiPhatSinh from '@/views/chiPhiPhatSinh.vue'
+
+import KhachHang from '@/views/khachHang.vue'
 
 const SUPPORTED_LANGS = ['vi', 'en', 'zh-CN', 'fil']
 
@@ -33,7 +39,7 @@ const router = createRouter({
         }
       },
     },
-   
+
 
     {
       path: '/crm',
@@ -41,8 +47,26 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         { path: '', redirect: 'nhap-hang' },
+        { path: 'nhap-hoa-don', name: 'nhap-hoa-don', component: NhapHoaDon }, // ✅ THÊM
+        {
+          path: 'don-hang',
+          name: 'admin-don-hang',
+          component: DonHang
+        },
+        // ✅ THÊM route trong children của /crm (đặt chỗ nào cũng được)
+        { path: 'khach-hang', name: 'admin-khach-hang', component: KhachHang },
+
         { path: 'nhap-hang', name: 'nhap-hang', component: NhapHang },
         { path: 'kho-hang', name: 'kho-hang', component: KhoHang },
+        { path: 'chi-phi-phat-sinh', name: 'admin-chi-phi-phat-sinh', component: ChiPhiPhatSinh },
+
+
+        {
+          path: 'bao-cao',
+          name: 'admin-bao-cao',
+          component: BaoCao,
+        },
+
         { path: 'banner', name: 'admin-banner', component: Banner },
         { path: 'thong-bao', name: 'admin-thong-bao', component: Thongbao },
         { path: 'logo', name: 'admin-logo', component: Logo },

@@ -24,7 +24,7 @@
   "cart": {
     "title": "ORDER",
     "quantity": "Dami",
-    "total": "Kabuuan",
+    "total": "Kabuuan (cash)",
     "phone": "Numero ng telepono (o Telegram)",
     "phonePlaceholder": "Ilagay ang telepono / Telegram",
     "address": "Address ng delivery",
@@ -33,7 +33,7 @@
     "timePlaceholder": "Hal: 18:30",
     "note": "Karagdagang tala para sa shop",
     "notePlaceholder": "Tala (konting anghang, ihatid bago 7pm…)",
-    "finish": "TAPUSIN",
+    "finish": "Ipadala ang Order sa Shop",
     "back": "BUMALIK"
   },
   "export": {
@@ -41,17 +41,16 @@
     "copy": "Kopyahin ang order",
     "copied": "Nakopya na",
     "send": "Ipadala ang order sa",
-     "total": "Kabuuan",
-  "address": "Address",
-  "phone": "Telepono",
-  "time": "Oras ng delivery",
-  "note": "Karagdagang tala"
+    "total": "Kabuuan",
+    "address": "Address",
+    "phone": "Telepono",
+    "time": "Oras ng delivery",
+    "note": "Karagdagang tala"
   },
   "status": {
-  "in_stock": "May stock",
-  "out_stock": "Walang stock"
-}
-,
+    "in_stock": "May stock",
+    "out_stock": "Walang stock"
+  },
   "mobile": {
     "category": "Kategorya",
     "contact": "Makipag-ugnayan",

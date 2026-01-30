@@ -24,7 +24,7 @@
   "cart": {
     "title": "订单",
     "quantity": "数量",
-    "total": "总计",
+    "total": "总计 (现金)",
     "phone": "电话号码（或 Telegram）",
     "phonePlaceholder": "输入电话号码 / Telegram",
     "address": "送货地址",
@@ -33,7 +33,7 @@
     "timePlaceholder": "例如：18:30",
     "note": "给商家的备注",
     "notePlaceholder": "备注（少辣，7点前送达…）",
-    "finish": "完成",
+    "finish": "发送订单给商家",
     "back": "返回"
   },
   "export": {
@@ -41,19 +41,16 @@
     "copy": "复制订单",
     "copied": "已复制",
     "send": "发送订单到",
-     "total": "总计",
-  "address": "地址",
-  "phone": "电话",
-  "time": "送达时间",
-  "note": "附加备注"
-    
+    "total": "总计",
+    "address": "地址",
+    "phone": "电话",
+    "time": "送达时间",
+    "note": "附加备注"
   },
   "status": {
-  "in_stock": "有货",
-  "out_stock": "缺货"
-}
-
-,
+    "in_stock": "有货",
+    "out_stock": "缺货"
+  },
   "mobile": {
     "category": "分类",
     "contact": "联系",

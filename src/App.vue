@@ -19,4 +19,14 @@ html, body, #app {
   width: 100vw;
   min-height: 100vh;
 }
+
+.app-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 18px; /* default */
+  vertical-align: middle;
+  flex: 0 0 auto;
+}
 </style>

@@ -24,7 +24,7 @@
   "cart": {
     "title": "주문서",
     "quantity": "수량",
-    "total": "총합",
+    "total": "총합 (현금)",
     "phone": "전화번호 (없으면 텔레그램)",
     "phonePlaceholder": "전화번호 / 텔레그램 입력",
     "address": "배송 주소",
@@ -33,7 +33,7 @@
     "timePlaceholder": "예: 18:30",
     "note": "가게에 남길 메모",
     "notePlaceholder": "메모 입력 (덜 맵게, 7시 전에 배달 등)",
-    "finish": "완료",
+    "finish": "매장에 주문 보내기",
     "back": "뒤로"
   },
   "export": {

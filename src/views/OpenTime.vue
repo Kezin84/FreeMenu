@@ -130,7 +130,7 @@ onMounted(loadData)
       <div class="header-content">
       
         <div>
-          <h1 style="color: rgb(134, 239, 172); text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);font-weight: bold;">QUẢN LÝ THỜI GIAN</h1>
+          <h1 style="color: rgb(134, 239, 172); text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);font-weight: bold;"><i class="app-ico ri-time-line"></i> QUẢN LÝ THỜI GIAN</h1>
           <p class="page-subtitle" v-if="ncc">{{ ncc.Ten_nha_cung_cap }}</p>
         </div>
       </div>
@@ -151,7 +151,7 @@ onMounted(loadData)
       <div v-if="!openTime" class="card">
         <div class="card-body">
           <div class="empty-state">
-            <div class="empty-icon"><i class="ri-add-circle-fill"></i></div>
+            <div class="empty-icon"><i class="app-ico ri-add-circle-fill"></i></div>
             <h3 class="empty-title">Chưa có giờ hoạt động</h3>
             <p class="empty-text">Thêm giờ hoạt động để hiển thị cho khách hàng</p>
             
@@ -166,7 +166,7 @@ onMounted(loadData)
       <!-- ===== VIEW STATE ===== -->
       <div v-else class="card">
         <div class="card-header">
-          <h3 class="card-title"><i class="ri-time-fill"></i> Thông tin Giờ hoạt động</h3>
+          <h3 class="card-title"><i class="app-ico ri-time-fill"></i> Thông tin Giờ hoạt động</h3>
           <div class="badge-active">Active</div>
         </div>
 
@@ -204,7 +204,7 @@ onMounted(loadData)
               <h3 class="modal-title">{{ openTime ? 'Chỉnh sửa' : 'Thêm' }} Giờ hoạt động</h3>
             </div>
             <button @click="closeEdit" class="modal-close">
-              <span>✖</span>
+              <i class="app-ico ri-close-line"></i>
             </button>
           </div>
 
@@ -222,7 +222,7 @@ onMounted(loadData)
 
           <div class="modal-footer">
             <button @click="closeEdit" class="btn btn-secondary">
-              <span class="btn-icon">✖</span>
+              <i class="app-ico ri-close-line"></i>
               Hủy
             </button>
             <button
@@ -252,11 +252,11 @@ onMounted(loadData)
         <div class="modal-container modal-danger">
           <div class="modal-header">
             <div class="modal-title-group">
-              <span class="modal-icon">⚠️</span>
+              <i class="app-ico ri-error-warning-fill modal-icon" style="color: #ef4444;"></i>
               <h3 class="modal-title">Xác nhận xóa</h3>
             </div>
             <button @click="closeDelete" class="modal-close">
-              <span>✖</span>
+              <i class="app-ico ri-close-line"></i>
             </button>
           </div>
 
@@ -266,7 +266,7 @@ onMounted(loadData)
 
           <div class="modal-footer">
             <button @click="closeDelete" class="btn btn-secondary">
-              <span class="btn-icon">✖</span>
+              <i class="app-ico ri-close-line"></i>
               Hủy
             </button>
             <button
@@ -279,7 +279,7 @@ onMounted(loadData)
                 Đang xóa...
               </span>
               <span v-else>
-                <span class="btn-icon">🗑</span>
+                <i class="app-ico ri-delete-bin-line"></i>
                 Xóa
               </span>
             </button>

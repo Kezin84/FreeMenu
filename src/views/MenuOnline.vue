@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   
   <div
   class="layout"
@@ -158,6 +158,8 @@
       :key="bannerKey"
       :src="bannerList[currentBannerIndex].URL"
       alt="banner"
+      class="clickable"
+      @click="openImageModal(bannerList[currentBannerIndex].URL)"
     />
   </transition>
 
@@ -166,7 +168,7 @@
     class="banner-btn prev"
     @click="prevBanner"
   >
-    ‹
+    <i class="app-ico ri-arrow-left-s-line"></i>
   </button>
 
   <!-- NÚT NEXT -->
@@ -174,7 +176,7 @@
     class="banner-btn next"
     @click="nextBanner"
   >
-    ›
+    <i class="app-ico ri-arrow-right-s-line"></i>
   </button>
 </div>
 
@@ -183,30 +185,31 @@
 <div class="search-wrapper" ref="searchWrapperRef">
   <div class="search-box">
     <input
-      v-model="keyword"
+      v-model="searchInput"
       type="text"
       :placeholder="$t('search.placeholder')"
       class="search-input"
       @focus="showSearchSuggest = true"
       @input="showSearchSuggest = true"
+      @keyup.enter="applySearch"
     />
 
     <button
-      v-if="keyword"
+      v-if="searchInput"
       class="search-clear-btn"
       type="button"
       @click.stop="closeSearchSuggest"
       aria-label="Close search"
     >
-      ✕
+      <i class="app-ico ri-close-line"></i>
     </button>
 
-    <button class="search-btn" type="button">
+    <button class="search-btn" type="button" @click="applySearch">
       <i class="ri-search-line"></i>
     </button>
   </div>
   <div
-    v-if="keyword && searchSuggestions.length && showSearchSuggest"
+    v-if="searchInput && searchSuggestions.length && showSearchSuggest"
     class="search-suggest"
   >
     <button
@@ -233,7 +236,7 @@
   <button
     class="filter-btn"
     :class="{ active: priceSort === 'all' }"
-    @click="priceSort = 'all'"
+    @click="onAllFilter"
   >
     {{ $t('filter.all') }}
   </button>
@@ -280,6 +283,9 @@
       <!-- MENU GRID 4x4 -->
 <!-- MENU GRID 4x4 -->
 <div class="menu" ref="menuRef" :key="menuKey" v-if="pagedMenu.length > 0">
+  <div v-if="keyword" class="search-result-line">
+    Kết quả tìm kiếm cho: "{{ keyword }}"
+  </div>
 <div
   v-for="m in pagedMenu"
   :key="m.Ma_hang"
@@ -357,7 +363,7 @@
 
     <!-- SỐ LƯỢNG (BÊN DƯỚI) -->
     <div class="qty-row">
-      <button class="btn-qty" @click.stop="decTemp(m)">−</button>
+      <button class="btn-qty" @click.stop="decTemp(m)"><i class="app-ico ri-subtract-line"></i></button>
 
 <input
   type="number"
@@ -369,7 +375,7 @@
 
 
 
-    <button class="btn-qty" @click.stop="incTemp(m)">+</button>
+    <button class="btn-qty" @click.stop="incTemp(m)"><i class="app-ico ri-add-line"></i></button>
     </div>
 
     <!-- ADD GIỎ -->
@@ -415,7 +421,7 @@
   v-if="totalPages > 1"
   :key="pageKey"
 >
-<div v-if="totalPages > 1 && isMobile" class="powered-by powered-by-mobile">
+<div v-if="isMobile" class="powered-by powered-by-mobile">
   POWERED BY
   <a 
     class="powered-link"
@@ -433,7 +439,7 @@
     scrollToTop();
   "
 >
-  ‹
+  <i class="app-ico ri-arrow-left-s-line"></i>
 </button>
 
 
@@ -449,7 +455,7 @@
     {{ p }}
   </button>
 
-  <span v-else class="page-dots">…</span>
+  <span v-else class="page-dots"><i class="app-ico ri-more-line"></i></span>
 </template>
 
 
@@ -461,12 +467,12 @@
     scrollToTop();
   "
 >
-  ›
+  <i class="app-ico ri-arrow-right-s-line"></i>
 </button>
 
       </div>
-      <div v-if="isMobile && totalPages > 1" class="powered-by-mobile-footer">
-  POWERED BY
+      <div v-if="isMobile" class="powered-by-mobile-footer">
+  FREE WEBSITE BY 
   <a 
     class="powered-link"
     href="https://www.facebook.com/profile.php?id=100092383541391"
@@ -476,8 +482,8 @@
     FBC
   </a>
 </div>
-      <div v-if="totalPages > 1" class="powered-by">
-        POWERED BY
+      <div class="powered-by">
+        FREE WEBSITE BY 
         <a
           class="powered-link"
           href="https://www.facebook.com/profile.php?id=100092383541391"
@@ -672,10 +678,12 @@
 
 
   <div v-if="showCart" class="sidebar-content cart-box">
-    <h3 style="color: green;font-weight: bold;">
-      <i class="ri-shopping-basket-2-fill"></i>
-      {{ $t('cart.title') }}
-      <span class="order-count">({{ cartQtyTotal }})</span>
+    <h3 style="color: #15803d; font-weight: 900; display: flex; align-items: center; justify-content: space-between;">
+      <div style="color:#15803d ; font-weight: bold;">
+        <i class="ri-shopping-basket-2-fill"></i>
+        {{ $t('cart.title') }}
+        <span class="order-count" style="color: red;">({{ cartQtyTotal }})</span>
+      </div>
     </h3>
 
     <!-- ===== CHI TIẾT ĐƠN ===== -->
@@ -685,7 +693,6 @@
   class="cart-list"
   ref="cartListRef"
 >
-<div class="cart-list" ref="cartListRef">
   <template v-for="(i, idx) in cartItems" :key="i.Ma_hang">
     
     <!-- ===== CART ROW ===== -->
@@ -695,12 +702,18 @@
     highlight: i.Ma_hang === lastAdded,
     active: editingItem?.Ma_hang === i.Ma_hang
   }"
+  :data-ma="i.Ma_hang"
   @click="openEditQty(i)"
 >
 
       <!-- STT -->
-      <div class="cart-col stt">
-        {{ idx + 1 }}
+      <div class="cart-col stt" style="display: flex; align-items: center; justify-content: center;">
+        <img
+          v-if="i.Main_img"
+          :src="i.Main_img"
+          style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid #e5e7eb;"
+        />
+        <span v-else style="font-weight: bold; color: #6b7280;">{{ idx + 1 }}</span>
       </div>
 
       <!-- INFO -->
@@ -736,7 +749,7 @@
           class="remove-btn"
           @click.stop="removeItem(i)"
         >
-          ✕
+          <i class="app-ico ri-close-line"></i>
         </button>
       </div>
     </div>
@@ -745,14 +758,36 @@
    
 
   </template>
-</div>
-
 </transition-group>
-<div class="cart-total">
-  <span>{{ $t('cart.total') }}</span>
-  <strong>
-    {{ formatPrice(totalAmount, cartItems[0]?.Don_vi_tien_te) }}
-  </strong>
+<div style="display: flex; gap: 8px; margin-bottom: 10px; margin-top: 5px;">
+  <!-- TOTAL BOX -->
+  <div class="cart-total" style="flex: 1; margin: 0;">
+    <span>{{ $t('cart.total') }}</span>
+    <strong>
+      {{ formatPrice(totalAmount, cartItems[0]?.Don_vi_tien_te) }}
+    </strong>
+  </div>
+
+  <!-- EXPAND BTN BOX -->
+  <button
+    class="expand-details-btn"
+    style="
+      background: white;
+      border: none;
+      color: #15803d;
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 12px;
+      width: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    "
+    @click="showFullCartModal = true"
+    title="Xem chi tiết"
+  >
+    <i class="ri-fullscreen-line"></i>
+  </button>
 </div>
 
 <!-- ✅ HÀNG NÚT CK (TRÁI) + KHUYẾN MÃI (PHẢI) -->
@@ -827,7 +862,7 @@
   </div>
     <button
     class="scroll-top-fab"
-    v-show="showScrollTop && !isMobile"
+    v-show="showScrollTop"
     :title="$t('common.scrollTop')"
     @click="scrollToTop"
   >
@@ -1267,9 +1302,13 @@
 </Teleport>
 
 <!-- ===== MODAL CHỈNH SỐ LƯỢNG ===== -->
-<div v-if="showEditQtyModal" class="modal-overlay">
+<div
+  v-if="showEditQtyModal"
+  class="modal-overlay z-top"
+  @click="closeEditQtyModal"
+>
 
-  <div class="modal-card qty-modal">
+  <div class="modal-card qty-modal" @click.stop>
 
     <!-- close -->
     <button class="modal-close" @click="closeEditQtyModal">✕</button>
@@ -1291,6 +1330,19 @@
       <button @click="editQty++">+</button>
     </div>
 
+    <!-- GHI CHÚ -->
+    <div class="note-box" style="margin-bottom: 12px;width:100%">
+      <label style="display:block; font-size:13px; font-weight:600; margin-bottom:4px; color:#4b5563;">
+        {{ $t('cart.note') }}
+      </label>
+      <textarea
+        v-model="editNote"
+        rows="2"
+        style="width:100%; border:1px solid #d1fae5; border-radius:8px; padding:8px; outline:none; font-size:14px;"
+        placeholder="..."
+      ></textarea>
+    </div>
+
     <!-- save -->
     <button class="save-btn" @click="saveEditQty">
       LƯU
@@ -1300,7 +1352,7 @@
 </div>
 <div
   v-if="showCKModal"
-  class="modal-overlay"
+  class="modal-overlay z-top"
   @click="showCKModal = false"
 >
   <div class="modal-card ck-modal" @click.stop>
@@ -1360,6 +1412,100 @@
     </div>
   </div>
 </div>
+<!-- ===== FULL CART MODAL ===== -->
+<div v-if="showFullCartModal" class="modal-overlay" @click="showFullCartModal = false">
+  <div class="modal-card full-cart-modal" @click.stop>
+    <button class="modal-close" @click="showFullCartModal = false">✕</button>
+
+    <h3 class="export-title" style="margin-bottom: 16px; color: green; font-weight: bold;">
+      <i class="ri-shopping-basket-2-fill"></i>
+      CHI TIẾT ĐƠN HÀNG ({{ cartQtyTotal }})
+    </h3>
+
+    <div class="full-cart-list">
+      <div
+        v-for="(i, idx) in cartItems"
+        :key="i.Ma_hang"
+        class="cart-row full-cart-row"
+        @click="openEditQty(i)"
+      >
+        <!-- STT -->
+        <div class="cart-col stt">
+          {{ idx + 1 }}
+        </div>
+
+
+
+        <!-- IMG -->
+        <div class="cart-col img">
+             <img :src="i.Main_img || 'https://via.placeholder.com/80'" class="cart-row-img" />
+        </div>
+
+        <!-- INFO -->
+        <div class="cart-col info">
+          <div class="cart-name">{{ i.Ten_hang }}</div>
+
+          <div class="cart-price">
+            {{ formatPrice(i.Gia_ban, i.Don_vi_tien_te) }}
+            <span v-if="i.Dvt">/ {{ i.Dvt }}</span>
+          </div>
+
+          <div class="cart-qty">
+            {{ $t('cart.quantity') }}: x{{ i.qty }}
+          </div>
+
+          <div v-if="itemNotes[i.Ma_hang]" class="cart-item-note">
+            <i class="ri-edit-2-fill"></i>
+            {{ itemNotes[i.Ma_hang] }}
+          </div>
+        </div>
+
+        <!-- SUBTOTAL -->
+        <div class="cart-col subtotal">
+          {{ formatPrice(i.thanhTien, i.Don_vi_tien_te) }}
+        </div>
+
+        <!-- REMOVE -->
+        <div class="cart-col action">
+          <button class="remove-btn" @click.stop="removeItem(i)">
+            <i class="app-ico ri-close-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOTAL -->
+    <!-- TOTAL -->
+    <div class="cart-total full-cart-total" style="justify-content: space-between;">
+      <span>{{ $t('cart.total') }}</span>
+      <strong>
+        {{ formatPrice(totalAmount, cartItems[0]?.Don_vi_tien_te) }}
+      </strong>
+    </div>
+
+    <!-- BANKING / TRANSFER ROW -->
+    <div class="cart-total full-cart-total banking-row" style="background: #2563eb; width: fit-content; margin: 0 auto 12px; gap: 20px;">
+       <span style="font-weight: 500; opacity: 0.9; font-size: 14px; display: flex; align-items: center; gap: 8px;">
+          Chuyển khoản:
+          <strong style="font-weight: 900; font-size: 16px;">
+            {{ ckList.length ? calcOnlyTransferAmount(ckList[0]) : formatPrice(totalAmount, cartItems[0]?.Don_vi_tien_te) }}
+          </strong>
+       </span>
+       <button
+          class="ck-btn-inline"
+          style="background: #fde047; color: #166534; font-weight: 900; padding: 6px 14px; border-radius: 999px; border: none; display: flex; align-items: center; gap: 4px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-size: 13px;"
+          :disabled="!ckList.length"
+          @click="showCKModal = true"
+       >
+         BANKING <i class="ri-qr-code-fill" style="font-size: 16px;"></i>
+       </button>
+    </div>
+
+
+
+  </div>
+</div>
+
 <!-- ===== MODAL HƯỚNG DẪN COPY + PASTE ===== -->
 <div v-if="showGuideModal" class="modal-overlay" @click="showGuideModal = false">
   <div class="modal-card copy-guide-modal" @click.stop>
@@ -1544,6 +1690,7 @@ const previewImage = ref('')
 // ===== THÔNG TIN CHUYỂN KHOẢN =====
 const thongTinChuyenKhoan = ref([])
 const showCKModal = ref(false)
+const showFullCartModal = ref(false)
 
 const ckList = computed(() =>
   (thongTinChuyenKhoan.value || []).filter(
@@ -1705,6 +1852,7 @@ const menuKey = computed(() => {
 })
 
 const keyword = ref('')
+const searchInput = ref('')
 const cart = ref({})
 const currentCategory = ref('Tất cả')
 
@@ -1811,6 +1959,11 @@ const categories = computed(() => {
   ]
 })
 
+const allCategoryLabel = computed(() => categories.value[0] || '')
+function resetToAllCategory() {
+  currentCategory.value = allCategoryLabel.value || 'T §t c §œ'
+}
+
   const shopContactList = computed(() =>
   shopContacts.value.filter(
     (c) => c.Ma_nha_cung_cap === maNCC
@@ -1823,7 +1976,7 @@ const filteredMenu = computed(() => {
   if (currentCategory.value === 'Sale') {
     list = list.filter(m => isDiscount(m))
   }
-  else if (currentCategory.value !== 'Tất cả') {
+  else if (currentCategory.value !== allCategoryLabel.value) {
     list = list.filter(m => m.Danh_muc === currentCategory.value)
   }
 
@@ -1851,7 +2004,7 @@ const filteredMenu = computed(() => {
 })
 
 const searchSuggestions = computed(() => {
-  const kw = (keyword.value || '').trim().toLowerCase()
+  const kw = (searchInput.value || '').trim().toLowerCase()
   if (!kw) return []
 
   return menu.value
@@ -1888,6 +2041,12 @@ let searchScrollTimer = null
 watch(keyword, () => {
   currentPage.value = 1
 })
+
+function applySearch() {
+  keyword.value = (searchInput.value || '').trim()
+  showSearchSuggest.value = false
+  scrollToTop()
+}
 
 watch(
   () => totalPages.value,
@@ -2178,27 +2337,38 @@ function addToCart(m) {
   lastAdded.value = m.Ma_hang
   setTimeout(() => {
     lastAdded.value = null
-  }, 400)
+  }, 2000)
 
   const qty = tempQty.value[m.Ma_hang]
 
-if (!cart.value[m.Ma_hang]) {
-  cart.value[m.Ma_hang] = qty
-  cart.value[m.Ma_hang + '_time'] = Date.now() // 🔥 lưu thời gian lần đầu
-} else {
-  cart.value[m.Ma_hang] += qty
-  cart.value[m.Ma_hang + '_time'] = Date.now() // 🔥 cập nhật thời gian mỗi lần thêm
-}
+  if (!cart.value[m.Ma_hang]) {
+    cart.value[m.Ma_hang] = qty
+    cart.value[m.Ma_hang + '_time'] = Date.now() // 🔥 lưu thời gian lần đầu
+  } else {
+    cart.value[m.Ma_hang] += qty
+    cart.value[m.Ma_hang + '_time'] = Date.now() // 🔥 cập nhật thời gian mỗi lần thêm
+  }
+
   if (!itemNotes.value[m.Ma_hang]) {
     itemNotes.value[m.Ma_hang] = ''
   }
-
   tempQty.value[m.Ma_hang] = 1
 
   // ✅ CHỈ DESKTOP MỚI AUTO MỞ GIỎ
   if (!isMobile.value) {
     showCart.value = true
   }
+
+  // Cuộn tới item vừa thêm
+  nextTick(() => {
+    const listEl = cartListRef.value?.$el || cartListRef.value
+    if (listEl) {
+      const itemEl = listEl.querySelector(`.cart-row[data-ma="${m.Ma_hang}"]`)
+      if (itemEl) {
+        itemEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  })
 }
 
 
@@ -2347,6 +2517,7 @@ function closeDetail() {
 
 function closeSearchSuggest() {
   keyword.value = ''
+  searchInput.value = ''
   showSearchSuggest.value = false
 }
 
@@ -2681,6 +2852,12 @@ function selectCategory(c) {
   currentCategory.value = c
   currentPage.value = 1
 
+  if (c === allCategoryLabel.value) {
+    keyword.value = ''
+    searchInput.value = ''
+    priceSort.value = 'all'
+  }
+
   // mobile thì đóng modal danh mục
   if (isMobile.value) {
     showCategoryModal.value = false
@@ -2690,6 +2867,15 @@ function selectCategory(c) {
   nextTick(() => {
     scrollToTop()
   })
+}
+
+function onAllFilter() {
+  keyword.value = ''
+  searchInput.value = ''
+  priceSort.value = 'all'
+  resetToAllCategory()
+  currentPage.value = 1
+  scrollToTop()
 }
 const bumpCart = ref(false)
 
@@ -2767,9 +2953,10 @@ watch(
     /* 2. RESET STATE */
     currentPage.value = 1
     keyword.value = ''
+    searchInput.value = ''
 
     /* ⚠️ Nếu category là text tĩnh */
-    currentCategory.value = 'Tất cả'
+    resetToAllCategory()
     // hoặc nếu mày có biến:
     // currentCategory.value = defaultCategory.value
 
@@ -2812,8 +2999,9 @@ function goHomeMobile() {
   showExportModal.value = false
 
   keyword.value = ''
+  searchInput.value = ''
   priceSort.value = 'all'
-  currentCategory.value = 'Tất cả'
+  resetToAllCategory()
   currentPage.value = 1
 
   // scroll lên danh sách sản phẩm (dùng hàm cũ)
@@ -2846,9 +3034,12 @@ const shopTime = computed(() => {
 const showEditQtyModal = ref(false)
 const editingItem = ref(null)
 const editQty = ref(1)
+const editNote = ref('')
+
 function openEditQty(item) {
   editingItem.value = item
   editQty.value = item.qty
+  editNote.value = itemNotes.value[item.Ma_hang] || ''
 
   if (isMobile.value) {
     showEditQtyModal.value = true
@@ -2862,6 +3053,13 @@ function saveEditQty() {
 
   const ma = editingItem.value.Ma_hang
   cart.value[ma] = editQty.value   // 🔥 SỬA ĐÚNG NGUỒN
+
+  // Lưu ghi chú
+  if (editNote.value && editNote.value.trim()) {
+    itemNotes.value[ma] = editNote.value.trim()
+  } else {
+    delete itemNotes.value[ma]
+  }
 
   showEditQtyModal.value = false
    editingItem.value = null // 👈 QUAN TRỌNG
@@ -2879,6 +3077,14 @@ const soTienChuyenKhoan = (c) => {
   const sauQuyDoi = tong * tiGia
 
   return `${formatPrice(tong, cartItems.value[0]?.Don_vi_tien_te)} ~ ${formatPrice(sauQuyDoi, donViCK)}`
+}
+
+const calcOnlyTransferAmount = (c) => {
+  const tong = Number(totalAmount.value || 0)
+  const tiGia = Number(c.Ti_gia || 1)
+  const donViCK = c.Don_vi_tien_te || ''
+  const sauQuyDoi = tong * tiGia
+  return formatPrice(sauQuyDoi, donViCK)
 }
 
 function isDiscount(m) {
@@ -3031,6 +3237,7 @@ const hasSale = computed(() =>
 
   display: -webkit-box;
   -webkit-line-clamp: 2;     /* 🔥 tối đa 2 dòng */
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -3238,11 +3445,25 @@ border-radius: inherit; /* 👈 bo theo cha */
   margin: 10px 0;
 }
 
-.menu {
+/* DESKTOP */
+
+/* wrapper/grid container của menu */
+.menu{
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  width: 100%;
+
+  grid-template-columns: repeat(4, minmax(200px, 260px));
+  justify-content: center;
+  align-content: start;
 }
+@media (max-width: 1200px){
+  .menu{ grid-template-columns: repeat(3, minmax(200px, 260px)); }
+}
+@media (max-width: 900px){
+  .menu{ grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+}
+
 
 /* ===== CARD ===== */
 .card {
@@ -3269,6 +3490,7 @@ border-radius: inherit; /* 👈 bo theo cha */
   font-size: 15px;
   font-weight: 700;
   margin-bottom: 2px;
+
 }
 
 .desc {
@@ -3335,7 +3557,7 @@ border-radius: inherit; /* 👈 bo theo cha */
   margin-top: 8px;
   width: 100%;
   padding: 10px 0;
-transition: background 0.2s ease, transform 0.1s ease;
+  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.1s ease;
   border: none;
   border-radius: 12px;
 
@@ -3354,7 +3576,7 @@ transition: background 0.2s ease, transform 0.1s ease;
   user-select: none;
 
   box-shadow: 0 8px 20px rgba(0, 82, 31, 0.45);
-  transition: all 0.2s ease;
+  transform: translateY(0);
 }
 .add-btn.added {
   background: linear-gradient(135deg, #22c55e, #16a34a);
@@ -3367,19 +3589,29 @@ transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .add-btn.added:active {
-  transform: scale(0.95);
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 8px rgba(34, 197, 94, 0.12),
+    0 0 0 12px rgba(34, 197, 94, 0.08),
+    0 0 0 4px rgba(34, 197, 94, 0.18),
+    0 4px 10px rgba(0, 82, 31, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 /* hover */
 .add-btn:hover {
-  transform: translateY(-1px);
-  transform: scale(1.05);
+  transform: translateY(-1px) scale(1.03);
   box-shadow: 0 10px 22px rgba(22, 163, 74, 0.6);
 }
 
 /* click */
 .add-btn:active {
-  transform: scale(1.2);
-  box-shadow: 0 4px 10px rgba(22, 163, 74, 0.35);
+  transform: translateY(2px);
+  box-shadow:
+    0 0 0 8px rgba(34, 197, 94, 0.12),
+    0 0 0 12px rgba(34, 197, 94, 0.08),
+    0 0 0 4px rgba(34, 197, 94, 0.18),
+    0 4px 10px rgba(22, 163, 74, 0.35),
+    inset 0 2px 4px rgba(0, 0, 0, 0.18);
 }
 
 /* HẾT HÀNG */
@@ -3469,7 +3701,7 @@ transition: background 0.2s ease, transform 0.1s ease;
   justify-content: center;
   gap: 12px;
   
-  margin: -12px 0 26px;
+  margin: 20px 0 26px;
   padding: 24px 40px;
   
   border-radius: 14px;
@@ -3786,6 +4018,7 @@ transition: background 0.2s ease, transform 0.1s ease;
 
 .export::-webkit-scrollbar-track {
   background: transparent;
+  overflow: visible;
   border-radius: 999px;
 }
 
@@ -3895,7 +4128,8 @@ h3, h4, h5, p, span, div {
   z-index: 15;
   padding: 12px 10px;
  backdrop-filter: blur(4px);
-  background: transparent;   /* ❌ bỏ nền */
+  background: transparent;
+  overflow: visible;   /* ❌ bỏ nền */
 }
 
 /* ===== SEARCH BOX ===== */
@@ -3930,8 +4164,12 @@ h3, h4, h5, p, span, div {
 
 /* SEARCH SUGGEST */
 .search-suggest {
-  max-width: 420px;
-  margin: 8px auto 0;
+  position: absolute;
+  left: 50%;
+  top: 64px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 20px));
+  margin: 0;
   background: #ffffff;
   border-radius: 16px;
   border: 1px solid rgba(22, 163, 74, 0.2);
@@ -3939,8 +4177,8 @@ h3, h4, h5, p, span, div {
   overflow: hidden;
   max-height: 320px;
   overflow-y: auto;
+  z-index: 30;
 }
-
 .search-suggest::-webkit-scrollbar {
   width: 8px;
 }
@@ -3962,6 +4200,7 @@ h3, h4, h5, p, span, div {
   padding: 8px 10px;
   border: none;
   background: transparent;
+  overflow: visible;
   cursor: pointer;
   text-align: left;
 }
@@ -4078,6 +4317,15 @@ h3, h4, h5, p, span, div {
 
 .search-clear-btn:active {
   transform: scale(0.94);
+}
+
+.search-result-line {
+  grid-column: 1 / -1;
+  margin: 0 4px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #00ff15;
+  text-transform: uppercase;
 }
 
 .banner {
@@ -4315,6 +4563,10 @@ h3, h4, h5, p, span, div {
   align-items: center;
   justify-content: center;
   z-index: 9999;
+}
+
+.modal-overlay.z-top {
+  z-index: 10001;
 }
 
 /* ===== MODAL CARD ===== */
@@ -4667,10 +4919,13 @@ h3, h4, h5, p, span, div {
   }
 
   .modal-card.modal-wide .add-btn:active {
-    transform: translateY(0) scale(0.99);
+    transform: translateY(2px);
     box-shadow:
-      0 6px 14px rgba(22, 163, 74, 0.2),
-      inset 0 2px 4px rgba(0, 0, 0, 0.12);
+      0 0 0 8px rgba(34, 197, 94, 0.1),
+      0 0 0 12px rgba(34, 197, 94, 0.06),
+      0 0 0 4px rgba(34, 197, 94, 0.16),
+      0 4px 10px rgba(22, 163, 74, 0.2),
+      inset 0 2px 4px rgba(0, 0, 0, 0.18);
   }
 
   .modal-card.modal-wide .modal-close {
@@ -4778,11 +5033,22 @@ h3, h4, h5, p, span, div {
 .cart-row {
   position: relative;
   display: grid;
-  grid-template-columns: 28px 1fr 90px 32px;
+  grid-template-columns: 40px 1fr 90px 32px;
   gap: 8px;
   padding: 8px 8px 8px 12px;
 
   border-bottom: 1px dashed #e5e7eb;
+  transition: background-color 0.3s ease;
+}
+
+.cart-row.highlight {
+  animation: highlightFlash 2s ease;
+}
+
+@keyframes highlightFlash {
+  0% { background-color: #fef08a; } /* Màu vàng nhạt */
+  70% { background-color: #fef08a; }
+  100% { background-color: transparent; }
 }
 
 .cart-row::before {
@@ -4816,9 +5082,16 @@ h3, h4, h5, p, span, div {
 }
 
 .cart-name {
-   font-size: 12.5px;
+  font-size: 12.5px;
   font-weight: 700;
   line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-clamp: 2;
+  word-break: break-word;
 }
 
 .cart-price {
@@ -4899,7 +5172,7 @@ h3, h4, h5, p, span, div {
 .cart-total span,
 .cart-total strong,
 .cart-total div {
-  color: #e0dd07 !important;
+  color: #fafafa !important;
   font-weight: bold;
    font-size: 14px;
 }
@@ -4996,7 +5269,7 @@ h3, h4, h5, p, span, div {
   font-size: 10.5px;
   line-height: 1.3;
   font-style: italic;
-  color: #374151;
+  color: #dc2626;
   margin-top: 2px;
 }
 /* ===== MODAL QTY – GIỐNG CARD BÊN NGOÀI ===== */
@@ -5086,7 +5359,8 @@ h3, h4, h5, p, span, div {
   margin-top: auto;        /* 🔥 đẩy xuống đáy */
   padding: 8px 4px;
 
-  background: transparent; /* ❌ bỏ nền */
+  background: transparent;
+  overflow: visible; /* ❌ bỏ nền */
   box-shadow: none;
   border-radius: 0;
 }
@@ -5109,6 +5383,7 @@ h3, h4, h5, p, span, div {
 
   color: #ffffff;
   background: transparent;
+  overflow: visible;
   transition: background 0.2s ease;
 }
 .contact-item:hover {
@@ -5158,6 +5433,7 @@ h3, h4, h5, p, span, div {
 
 .categories::-webkit-scrollbar-track {
   background: transparent;
+  overflow: visible;
   border-radius: 999px;
 }
 
@@ -5773,6 +6049,7 @@ h3, h4, h5, p, span, div {
 
 .cart-list::-webkit-scrollbar-track {
   background: transparent;
+  overflow: visible;
   border-radius: 999px;
 }
 
@@ -6774,7 +7051,13 @@ h3, h4, h5, p, span, div {
   pointer-events: none;
 }
 .detail-add-btn:active {
-  transform: translateY(-50%) scale(0.96);
+  transform: translateY(calc(-50% + 2px));
+  box-shadow:
+    0 0 0 8px rgba(250, 204, 21, 0.12),
+    0 0 0 12px rgba(250, 204, 21, 0.08),
+    0 0 0 4px rgba(250, 204, 21, 0.18),
+    0 2px 6px rgba(250, 204, 21, 0.35),
+    inset 0 2px 3px rgba(0, 0, 0, 0.12);
 }
 .detail-add-btn:disabled {
   opacity: 0.6;
@@ -6881,6 +7164,7 @@ h3, h4, h5, p, span, div {
 .mobile-bottom-bar button {
   position: relative;
   background: transparent;
+  overflow: visible;
   border: none;
   height: 100%;
 }
@@ -7095,6 +7379,7 @@ h3, h4, h5, p, span, div {
   .detail-thumb {
     border: none;
     background: transparent;
+  overflow: visible;
     padding: 0;
     flex: 0 0 auto;
     border-radius: 10px;
@@ -7932,6 +8217,7 @@ filter: saturate(1.15);
   }
   100% {
     background: transparent;
+  overflow: visible;
   }
 }
 .qty-dvt {
@@ -8761,7 +9047,7 @@ box-shadow: 0 4px 10px rgba(239, 243, 16, 0.45);
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: -15px auto 1px;
+  margin: 20px auto 1px;
   padding: 30px;
   border-radius: 15px;
   
@@ -8955,5 +9241,195 @@ box-shadow: 0 4px 10px rgba(239, 243, 16, 0.45);
   .powered-by-mobile-footer {
     display: none !important;
   }
+  .banner, .banner img {
+    border-radius: 32px;
+  }
+}
+/* EXPAND CART BTN */
+.expand-cart-btn {
+  background: transparent;
+  border: none;
+  color: #16a34a;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.expand-details-btn {
+  transition: transform 0.2s ease;
+}
+.expand-details-btn:hover {
+  transform: scale(1.15);
+}
+.expand-cart-btn:hover {
+  background: #f0fdf4;
+  transform: scale(1.1);
+  color: #15803d;
+}
+
+/* FULL CART MODAL */
+.full-cart-modal {
+  width: 700px;
+  max-width: 95vw;
+  padding: 16px;
+  background: #f8fafc;
+}
+@media (max-width: 600px) {
+  .full-cart-modal {
+    padding: 12px;
+  }
+}
+
+.full-cart-list {
+  max-height: 600px; /* height for approx 7 items */
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 4px;
+}
+.full-cart-list::-webkit-scrollbar {
+  width: 6px;
+}
+.full-cart-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.full-cart-list::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 4px;
+}
+.full-cart-list::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+.full-cart-row {
+  margin-bottom: 8px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+
+.full-cart-total {
+  background: #22c55e;
+  
+  font-weight: 900;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.full-cart-info {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #374151;
+  background: #fff7ed;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ffedd5;
 }
 </style>
+
+<style>
+.cart-row-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.full-cart-row .cart-col.stt {
+  flex-shrink: 0;
+  width: 30px;
+  font-weight: bold;
+  text-align: center;
+}
+@media (max-width: 500px) {
+  .full-cart-row .cart-col.stt {
+    width: 20px;
+    font-size: 12px;
+  }
+  .full-cart-row .cart-row-img {
+    width: 40px;
+    height: 40px;
+    margin-right: 6px;
+  }
+  .full-cart-row .cart-col.info {
+    padding-right: 12px;
+  }
+  .full-cart-row .cart-col.subtotal {
+    width: 80px;
+    font-size: 13px;
+  }
+}
+
+.full-cart-row .cart-col.info {
+  flex: 1;
+  padding: 0 10px;
+  min-width: 0; /* Cho phép line-clamp hoạt động tốt */
+}
+
+.full-cart-row .cart-col.subtotal {
+  flex-shrink: 0;
+  width: 100px;
+  text-align: right;
+  font-weight: bold;
+  color: #15803d;
+}
+
+.full-cart-row .cart-col.action {
+  flex-shrink: 0;
+  width: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* BANKING ROW RESPONSIVE */
+@media (max-width: 500px) {
+  .full-cart-total.banking-row {
+     /* Giữ row để ngắn lại */
+     flex-direction: row; 
+     width: fit-content !important;
+     margin: 0 auto 12px !important;
+     padding: 8px 16px;
+     gap: 12px !important;
+  }
+  .full-cart-total.banking-row span {
+     flex-direction: row;
+     align-items: center;
+     gap: 5px !important;
+     font-size: 13px;
+  }
+  .full-cart-total.banking-row strong {
+     white-space: nowrap;
+     font-size: 15px;
+  }
+  .full-cart-total.banking-row .ck-btn-inline {
+     padding: 4px 10px !important;
+     font-size: 12px !important;
+  }
+}
+
+</style>
+
+
+
+
+
+
+
+
+
+
+
