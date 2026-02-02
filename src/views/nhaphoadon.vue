@@ -2851,23 +2851,67 @@ async function previewHoaDon() {
   await nextTick()
 
   try {
-    const canvas = await html2canvas(hoaDonRef.value, {
-      scale: 1.5, // Reduced from 2 to optimize speed while keeping good quality
+    // Detect mobile and adjust settings accordingly
+    const isMobileDevice = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    
+    // Mobile-optimized settings: lower scale and quality to prevent memory issues
+    const canvasOptions = {
+      scale: isMobileDevice ? 1 : 1.5, // Lower scale on mobile to prevent memory crash
       backgroundColor: '#ffffff',
       useCORS: true,
+      allowTaint: true,
       logging: false,
-    })
+      imageTimeout: 15000, // Timeout for loading images
+      removeContainer: true, // Clean up cloned elements
+      windowWidth: hoaDonRef.value?.scrollWidth || 800, // Explicit width
+      windowHeight: hoaDonRef.value?.scrollHeight || 1200, // Explicit height
+    }
 
-    const img = canvas.toDataURL('image/png', 0.85) // Compressed PNG quality
+    // Create canvas with timeout wrapper for mobile
+    let canvas
+    if (isMobileDevice) {
+      // Wrap in timeout to prevent infinite hang on mobile
+      canvas = await Promise.race([
+        html2canvas(hoaDonRef.value, canvasOptions),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout: Tạo ảnh quá lâu')), 20000)
+        )
+      ])
+    } else {
+      canvas = await html2canvas(hoaDonRef.value, canvasOptions)
+    }
+
+    // Mobile uses JPEG with lower quality, desktop uses PNG
+    const imgFormat = isMobileDevice ? 'image/jpeg' : 'image/png'
+    const imgQuality = isMobileDevice ? 0.7 : 0.85
+    const img = canvas.toDataURL(imgFormat, imgQuality)
     invoiceImageUrl.value = img
 
-  const win = window.open('', '_blank')
-  win.document.write(`
+    // Try to open new window
+    const win = window.open('', '_blank')
+    
+    // Handle popup blocked on mobile
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      // Fallback: Create download link directly
+      toast('info', 'Popup bị chặn. Đang tải ảnh xuống...')
+      const link = document.createElement('a')
+      link.href = img
+      link.download = `hoa-don-${maHoaDon.value || 'export'}.${isMobileDevice ? 'jpg' : 'png'}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast('success', 'Đã tải ảnh hóa đơn!')
+      return
+    }
+
+    win.document.write(`
     <html>
     <head>
       <title>Xem hóa đơn</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
       <style>
+        * { box-sizing: border-box; }
         body { margin:0; text-align:center; background:#eee; font-family: system-ui, -apple-system, sans-serif; }
         img { max-width:100%; margin-top:10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .bar {
@@ -2878,13 +2922,14 @@ async function previewHoaDon() {
           border-bottom: 1px solid #ddd;
           display: flex;
           justify-content: center;
+          flex-wrap: wrap;
           gap: 10px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         .btn {
           border: none;
-          padding: 8px 16px;
-          border-radius: 6px;
+          padding: 10px 18px;
+          border-radius: 8px;
           cursor: pointer;
           font-weight: 600;
           color: white;
@@ -2893,13 +2938,19 @@ async function previewHoaDon() {
           gap: 6px;
           font-size: 14px;
           transition: transform 0.1s, opacity 0.2s;
+          -webkit-tap-highlight-color: transparent;
         }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn:active { transform: translateY(0); }
+        .btn:active { transform: scale(0.97); opacity: 0.85; }
         
-        .btn-download { background-color: #22c55e; } /* Green */
-        .btn-copy { background-color: #f59e0b; } /* Orange */
-        .btn-print { background-color: #3b82f6; } /* Blue */
+        .btn-download { background-color: #22c55e; }
+        .btn-copy { background-color: #f59e0b; }
+        .btn-print { background-color: #3b82f6; }
+
+        @media (max-width: 480px) {
+          .bar { padding: 10px; gap: 8px; }
+          .btn { padding: 10px 14px; font-size: 13px; flex: 1; justify-content: center; min-width: 90px; }
+        }
 
         @media print {
           .bar { display: none !important; }
@@ -2924,7 +2975,7 @@ async function previewHoaDon() {
         function download() {
           const a = document.createElement('a')
           a.href = document.getElementById('img').src
-          a.download = 'hoa-don.png'
+          a.download = 'hoa-don.${isMobileDevice ? 'jpg' : 'png'}'
           a.click()
         }
         async function copyImage() {
@@ -2935,18 +2986,27 @@ async function previewHoaDon() {
             await navigator.clipboard.write([
               new ClipboardItem({ 'image/png': blob })
             ])
-            window.opener?.toast?.('success', 'Đã copy ảnh vào clipboard')
+            alert('Đã copy ảnh vào clipboard!')
           } catch (err) {
-            window.opener?.toast?.('error', 'Lỗi copy ảnh: ' + err.message)
+            // Fallback for mobile: show message to long-press
+            alert('Không thể copy tự động. Hãy nhấn giữ vào ảnh để lưu.')
           }
         }
-      <\/script>
+      <\\/script>
     </body>
     </html>
   `)
   } catch (err) {
     console.error('Lỗi tạo ảnh hóa đơn:', err)
-    toast('error', 'Không thể tạo ảnh hóa đơn. Vui lòng thử lại.')
+    
+    // More specific error messages
+    if (err.message?.includes('Timeout')) {
+      toast('error', 'Tạo ảnh quá lâu. Vui lòng thử lại hoặc dùng "Xuất text".')
+    } else if (err.message?.includes('memory') || err.message?.includes('Memory')) {
+      toast('error', 'Thiết bị không đủ bộ nhớ. Vui lòng đóng bớt ứng dụng khác và thử lại.')
+    } else {
+      toast('error', 'Không thể tạo ảnh hóa đơn. Vui lòng dùng nút "Xuất text" thay thế.')
+    }
   } finally {
     isPreviewing.value = false
   }
