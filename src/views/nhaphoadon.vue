@@ -1548,32 +1548,6 @@
     </div>
   </div>
 
-  <!-- MODAL XEM ẢNH HÓA ĐƠN (Fallback khi popup bị chặn) -->
-  <div v-if="showInvoiceImageModal" class="invoice-image-modal-overlay" @click="showInvoiceImageModal = false">
-    <div class="invoice-image-modal" @click.stop>
-      <div class="iim-header">
-        <h3><i class="ri-image-line"></i> Xem hóa đơn</h3>
-        <button class="iim-close" @click="showInvoiceImageModal = false">
-          <i class="ri-close-line"></i>
-        </button>
-      </div>
-      <div class="iim-body">
-        <img :src="invoiceImageUrl" alt="Hóa đơn" class="iim-image" />
-      </div>
-      <div class="iim-footer">
-        <button class="iim-btn iim-btn-download" @click="downloadInvoiceImage">
-          <i class="ri-download-line"></i> Tải ảnh
-        </button>
-        <button class="iim-btn iim-btn-copy" @click="copyInvoiceImage">
-          <i class="ri-file-copy-line"></i> Copy ảnh
-        </button>
-        <button class="iim-btn iim-btn-print" @click="printInvoiceImage">
-          <i class="ri-printer-line"></i> In
-        </button>
-      </div>
-    </div>
-  </div>
-
   <div v-if="showSuccessModal" class="vip-modal-overlay">
      <div class="vip-success-card">
         <div class="vip-icon-box">
@@ -1772,7 +1746,6 @@ const showEditModal = ref(false)
 const editIndex = ref(-1)
 const editItem = reactive({})
 const invoiceImageUrl = ref('')
-const showInvoiceImageModal = ref(false) // Modal hiển thị ảnh khi popup bị chặn
 const barcodeRef = ref(null)
 
 const maHoaDon = ref('')
@@ -2917,11 +2890,17 @@ async function previewHoaDon() {
     // Try to open new window
     const win = window.open('', '_blank')
     
-    // Handle popup blocked on mobile - show modal instead
+    // Handle popup blocked on mobile
     if (!win || win.closed || typeof win.closed === 'undefined') {
-      // Fallback: Show modal with image and action buttons
-      showInvoiceImageModal.value = true
-      toast('info', 'Popup bị chặn. Xem hóa đơn trong cửa sổ bên dưới.')
+      // Fallback: Create download link directly
+      toast('info', 'Popup bị chặn. Đang tải ảnh xuống...')
+      const link = document.createElement('a')
+      link.href = img
+      link.download = `hoa-don-${maHoaDon.value || 'export'}.${isMobileDevice ? 'jpg' : 'png'}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      toast('success', 'Đã tải ảnh hóa đơn!')
       return
     }
 
@@ -3030,81 +3009,6 @@ async function previewHoaDon() {
     }
   } finally {
     isPreviewing.value = false
-  }
-}
-
-// === INVOICE IMAGE MODAL FUNCTIONS ===
-function downloadInvoiceImage() {
-  if (!invoiceImageUrl.value) {
-    toast('error', 'Chưa có ảnh hóa đơn')
-    return
-  }
-  
-  const isMobileDevice = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  const ext = isMobileDevice ? 'jpg' : 'png'
-  
-  const link = document.createElement('a')
-  link.href = invoiceImageUrl.value
-  link.download = `hoa-don-${maHoaDon.value || 'export'}.${ext}`
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  toast('success', 'Đã tải ảnh hóa đơn!')
-}
-
-async function copyInvoiceImage() {
-  if (!invoiceImageUrl.value) {
-    toast('error', 'Chưa có ảnh hóa đơn')
-    return
-  }
-  
-  try {
-    // Convert data URL to blob
-    const response = await fetch(invoiceImageUrl.value)
-    const blob = await response.blob()
-    
-    // Try using Clipboard API
-    await navigator.clipboard.write([
-      new ClipboardItem({ 'image/png': blob })
-    ])
-    toast('success', 'Đã copy ảnh vào clipboard!')
-  } catch (err) {
-    console.error('Copy image error:', err)
-    toast('info', 'Không thể copy tự động. Hãy nhấn giữ vào ảnh để lưu.')
-  }
-}
-
-function printInvoiceImage() {
-  if (!invoiceImageUrl.value) {
-    toast('error', 'Chưa có ảnh hóa đơn')
-    return
-  }
-  
-  // Open print window with the image
-  const printWin = window.open('', '_blank')
-  if (printWin) {
-    printWin.document.write(`
-      <html>
-      <head>
-        <title>In hóa đơn</title>
-        <style>
-          body { margin: 0; padding: 0; display: flex; justify-content: center; }
-          img { max-width: 100%; height: auto; }
-          @media print {
-            body { margin: 0; }
-            img { max-width: 100%; }
-          }
-        </style>
-      </head>
-      <body>
-        <img src="${invoiceImageUrl.value}" onload="window.print(); window.close();" />
-      </body>
-      </html>
-    `)
-    printWin.document.close()
-  } else {
-    // If popup blocked, use main window print with modal image
-    window.print()
   }
 }
 
@@ -3465,200 +3369,6 @@ function onCardImgError(product) {
   --accent-green-darker: #15803d;
   --accent-green-glow: rgba(34, 197, 94, 0.25);
   --accent-green-light: rgba(34, 197, 94, 0.15);
-}
-
-/* ===== INVOICE IMAGE MODAL ===== */
-.invoice-image-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.invoice-image-modal {
-  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
-  max-width: 95vw;
-  max-height: 90vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(30px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.iim-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-  background: rgba(15, 23, 42, 0.8);
-}
-
-.iim-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #f1f5f9;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.iim-header h3 i {
-  color: var(--accent-green);
-  font-size: 22px;
-}
-
-.iim-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.iim-close:hover {
-  background: #ef4444;
-  color: white;
-  transform: scale(1.05);
-}
-
-.iim-body {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.iim-image {
-  max-width: 100%;
-  max-height: 60vh;
-  object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.iim-footer {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px 20px;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
-  background: rgba(15, 23, 42, 0.8);
-  flex-wrap: wrap;
-}
-
-.iim-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  color: white;
-  transition: all 0.2s;
-  min-width: 110px;
-}
-
-.iim-btn:active {
-  transform: scale(0.96);
-}
-
-.iim-btn-download {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-  box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
-}
-
-.iim-btn-download:hover {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
-}
-
-.iim-btn-copy {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-}
-
-.iim-btn-copy:hover {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
-}
-
-.iim-btn-print {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-}
-
-.iim-btn-print:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-}
-
-@media (max-width: 480px) {
-  .iim-footer {
-    padding: 12px 16px;
-    gap: 8px;
-  }
-  
-  .iim-btn {
-    flex: 1;
-    min-width: 0;
-    padding: 12px 12px;
-    font-size: 13px;
-  }
-  
-  .iim-header {
-    padding: 12px 16px;
-  }
-  
-  .iim-header h3 {
-    font-size: 16px;
-  }
-  
-  .iim-body {
-    padding: 12px;
-  }
-  
-  .iim-image {
-    max-height: 50vh;
-  }
 }
 
 .status-dot-green {
